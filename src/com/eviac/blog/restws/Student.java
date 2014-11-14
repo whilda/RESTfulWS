@@ -1,7 +1,5 @@
 package com.eviac.blog.restws;
 
-import java.io.Reader;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -10,7 +8,6 @@ import javax.ws.rs.core.MediaType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
-import org.json.simple.parser.JSONParser;
 
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -48,7 +45,7 @@ public class Student {
 			mongoClient.close();
 		}else{
 			output.put("code", 0);
-			output.put("message", "Mongo DB connection can't established.");
+			output.put("message", "Database connection can't established.");
 		}
 		return output.toString();
 	}
