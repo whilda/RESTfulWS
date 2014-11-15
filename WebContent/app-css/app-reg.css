@@ -43,3 +43,7 @@ body {
 .panel-heading{
 	text-align: center;
 }
+
+.container{
+	max-width: 550px; 
+}

@@ -15,27 +15,27 @@
   </head>
 
   <body>
-
     <div class="container">
-		<form class="form-signin" role="form">
-			<div class="panel panel-default">
-				<div class="panel-heading"><h2>Application Form Registration</h2></div>
-				<div class="panel-body">
-					<div class="input-group">
-						<span class="input-group-addon glyphicon glyphicon-send"></span>
-						<input type="text" class="form-control" placeholder="Application Name">
-					</div>
-					<br />
-     				<button class="btn btn-lg btn-primary btn-block" type="submit">Registration</button>
-     				<br />
-     				<a href="index.html" class="pull-right"> <span class="glyphicon glyphicon-home"></span>&nbsp;Back to home page</a>
+		<div class="panel panel-default">
+			<div class="panel-heading"><h2>Application Form Registration</h2></div>
+			<div class="panel-body">
+				<div class="input-group">
+					<span class="input-group-addon glyphicon glyphicon-send"></span>
+					<input type="text" class="form-control" placeholder="Application Name" id="AppName">
 				</div>
+				<br />
+    				<a class="btn btn-lg btn-primary btn-block" onclick="Registration()">Registration</a>
+    				<br />
+    				<div id="alertDiv"></div>
+    				<br />
+    				<a href="index.html" class="pull-right"> <span class="glyphicon glyphicon-home"></span>&nbsp;Back to home page</a>
 			</div>
-   		</form>
+		</div>
     </div>
-
 
     <script src="js/jquery-2.1.1.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
+    <script src="app-js/app.js"></script>
+    <script src="app-js/app-reg.js"></script>
   </body>
 </html>

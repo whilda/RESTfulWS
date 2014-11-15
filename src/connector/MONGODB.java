@@ -1,15 +1,67 @@
 package connector;
 
-import java.net.UnknownHostException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Properties;
+
+import org.json.simple.JSONObject;
+
 import com.mongodb.MongoClient;
+import com.mongodb.MongoCredential;
+import com.mongodb.ServerAddress;
 
 public class MONGODB {
-	public static MongoClient GetMongoClient(){
+	private static MongoCredential credential;
+	private static MongoClient mongoClient;
+	private static JSONObject jsonProp;
+	
+	public static MongoClient GetMongoClient() throws Exception{
 		try {
-			return new MongoClient("localhost",27017);
-		} catch (UnknownHostException e) {
+			if(jsonProp == null)
+				jsonProp = getPropValues();
+			
+			if(credential == null)
+				credential = MongoCredential.createMongoCRCredential(
+						jsonProp.get("db_user").toString(), 
+						jsonProp.get("db_name").toString(), 
+						jsonProp.get("db_pass").toString().toCharArray());
+			
+			if(mongoClient == null)
+				mongoClient = new MongoClient(new ServerAddress(
+						jsonProp.get("db_host").toString(),
+						Integer.parseInt(jsonProp.get("db_port").toString())), Arrays.asList(credential));
+			
+			return mongoClient;
+		} catch (Throwable e) {
 			e.printStackTrace();
-			return null;
+			throw new Exception(e.toString());
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private static JSONObject getPropValues() throws IOException {
+		JSONObject resultObj = new JSONObject();
+		/*
+		String propFileName = "config.properties";
+		Properties prop = new Properties();
+		prop.load(new FileInputStream(propFileName));
+		
+		JSONObject resultObj = new JSONObject();
+		resultObj.put("db_host", prop.getProperty("db_host"));
+		resultObj.put("db_port", prop.getProperty("db_port"));
+		resultObj.put("db_user", prop.getProperty("db_user"));
+		resultObj.put("db_pass", prop.getProperty("db_pass"));
+		resultObj.put("db_name", prop.getProperty("db_name"));
+		*/
+				
+		resultObj.put("db_host", "localhost");
+		resultObj.put("db_port", "27017");
+		resultObj.put("db_user", "labfudinus");
+		resultObj.put("db_pass", "udinuslabf");
+		resultObj.put("db_name", "semanticwebservice");
+		return resultObj;
 	}
 }
