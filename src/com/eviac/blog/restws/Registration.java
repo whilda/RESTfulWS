@@ -26,6 +26,7 @@ public class Registration {
 	@Path("/app")
 	@Produces(MediaType.APPLICATION_JSON)
 	@SuppressWarnings("unchecked")
+	
 	public String AppReg(String jsonString) {
 		JSONObject outputJsonObj = new JSONObject();
 		JSONObject paramObj = (JSONObject) JSONValue.parse(jsonString);
@@ -59,7 +60,8 @@ public class Registration {
 		return temp_key;
 	}
 
-	private Boolean IsExistData(String key, String value, DBCollection coll) {
+	private Boolean IsExistData(String key, String value, DBCollection coll) 
+	{
 		BasicDBObject whereQuery = new BasicDBObject(key, value);
 		DBCursor cursor = coll.find(whereQuery);
 		Boolean result = false;
@@ -73,7 +75,8 @@ public class Registration {
 	@GET
 	@Path("/appkey/{AppKey}")
 	@SuppressWarnings("unchecked")
-	public String AppKey(@PathParam("AppKey") String appKey) {		
+	public String AppKey(@PathParam("AppKey") String appKey) 
+	{		
 		JSONObject outputJsonObj = new JSONObject();
 		outputJsonObj.put("code", 1);
 	    outputJsonObj.put("data", appKey);
