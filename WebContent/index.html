@@ -12,6 +12,7 @@
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/carousel.css" rel="stylesheet">
     <link href="css/animate.css" rel="stylesheet">
+	<link href="app-css/index.css" rel="stylesheet">
     <style>
 	    .wow:first-child {
 	      visibility: hidden;
@@ -19,6 +20,31 @@
   	</style>
   </head>
   <body>
+  <div id="overlay" style="display:none"></div>
+  <div id="overlayBox" class="col-lg-4 col-lg-offset-4" style="display:none">
+	<div id="login">
+		<img class="closeButton" src="assets/close_button.png"/>
+		<h2>Login</h2>
+		<div class="overlay-content">
+			<input type="text" name="user" placeholder="Username" class="form-control"/>
+			<input type="text" name="pass" placeholder="Password" class="form-control"/>
+			<input type="button" name="login" class="btn btn-primary" value="Login">
+			<div class="clearfix"></div>
+			<a href="#" class="signupbtn">Don't have account? Sign Up here</a>
+		</div>
+	</div>
+	<div id="register">
+		<img class="closeButton" src="assets/close_button.png"/>
+		<h2>Sign Up</h2>
+		<div class="overlay-content">
+			<input type="text" name="user" placeholder="Username" class="form-control"/>
+			<input type="text" name="pass" placeholder="Password" class="form-control"/>
+			<input type="button" name="signup" class="btn btn-primary" value="Signup">
+			<div class="clearfix"></div>
+			<a href="#" class="loginbtn">Already have account? Login here</a>
+		</div>
+	</div>
+  </div>
     <div class="navbar-wrapper">
       <div class="container">
         <div class="avbar navbar-default navbar-fixed-top" role="navigation">
@@ -29,7 +55,7 @@
                 <li><a href="#team">Team</a></li>
                 <li><a href="#office">Office</a></li>
                 <li><a href="app-reg.html">App Registration</a></li>
-				<li><a href="app-reg.html">Test Menu</a></li>
+				<li><a class="loginbtn" href="#">Login</a></li>
               </ul>
             </div>
           </div>
@@ -51,7 +77,7 @@
             <div class="carousel-caption">
               <h1>Banner 1.</h1>
               <p>Note: If you're viewing this page via a <code>file://</code> URL, the "next" and "previous" Glyphicon buttons on the left and right might not load/display properly due to web browser security rules.</p>
-              <p><a class="btn btn-lg btn-primary" href="#" role="button">Sign up today</a></p>
+              <p><a class="btn btn-lg btn-primary signupbtn" href="#" role="button">Sign up today</a></p>
             </div>
           </div>
         </div>
@@ -126,6 +152,7 @@
     <script src="js/jquery-2.1.1.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/wow.js"></script>
+	<script src="app-js/index.js"></script>
 	<script>
 		wow = new WOW(
 		  {
