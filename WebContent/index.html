@@ -8,7 +8,7 @@
     <meta name="author" content="whildachaq@gmail.com">
     
     <title>Semantic Web Service</title>
-    <link rel="shortcut icon" href="assets/dinus.ico" type="image/x-icon"/>
+    <link rel="shortcut icon" href="assets/dinus.png"/>
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/carousel.css" rel="stylesheet">
     <link href="css/animate.css" rel="stylesheet">
@@ -19,7 +19,7 @@
 	    }
   	</style>
   </head>
-  <body>
+  <body onload="OnLoad()">
   <div id="overlay" style="display:none"></div>
   <div id="overlayBox" class="col-lg-4 col-lg-offset-4" style="display:none">
 	<div id="login">
@@ -51,7 +51,7 @@
           <div class="container">
             <div class="navbar-collapse collapse">
               <ul class="nav navbar-nav">
-                <li class="active"><a href="#">Home</a></li>
+                <li><a href="#">Home</a></li>
                 <li><a href="#team">Team</a></li>
                 <li><a href="#office">Office</a></li>
                 <li><a href="app-reg.html">App Registration</a></li>
@@ -109,22 +109,36 @@
     <div id="team" style="padding-top: 75px" class="container marketing">
       <!-- Three columns of text below the carousel -->
       <div class="row">
-        <div class="col-lg-4 wow bounceInLeft">
-          <img class="img-circle" src="http://www.gravatar.com/avatar/e56411bb6a39e6a90185630b3d41538f" alt="Generic placeholder image" style="width: 140px; height: 140px;">
+        <div class="col-lg-6 wow bounceInRight">
+          <img id="profile1" class="img-circle" alt="Generic placeholder image" style="width: 140px; height: 140px;">
           <h2>herezadi@gmail.com </h2>
           <p>Donec sed odio dui. Etiam porta sem malesuada magna mollis euismod. Nullam id dolor id nibh ultricies vehicula ut id elit. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Praesent commodo cursus magna.</p>
           <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
         </div>
-        <div class="col-lg-4 wow bounceInDown">
-          <img class="img-circle" src="http://www.gravatar.com/avatar/69043a9ccb6851e8f945fa4febc34bfe" alt="Generic placeholder image" style="width: 140px; height: 140px;">
+        <div class="col-lg-6 wow bounceInLeft">
+          <img id="profile2" class="img-circle" alt="Generic placeholder image" style="width: 140px; height: 140px;">
           <h2>elfaatta@gmail.com </h2>
           <p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Cras mattis consectetur purus sit amet fermentum. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh.</p>
           <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
         </div>
-        <div class="col-lg-4 wow bounceInRight">
-          <img class="img-circle" src="http://www.gravatar.com/avatar/df5ec1b29cb07744246aa6b622fe2364" alt="Generic placeholder image" style="width: 140px; height: 140px;">
+      </div>
+      <div class="row">
+      	<div class="col-lg-4 wow bounceInLeft">
+          <img id="profile3" class="img-circle" alt="Generic placeholder image" style="width: 140px; height: 140px;">
           <h2>whildachaq@gmail.com</h2>
           <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
+          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+        </div>
+        <div class="col-lg-4 wow bounceInDown">
+          <img id="profile4" class="img-circle" alt="Generic placeholder image" style="width: 140px; height: 140px;">
+          <h2>sealovermage@gmail.com</h2>
+          <p>Donec sed odio dui. Etiam porta sem malesuada magna mollis euismod. Nullam id dolor id nibh ultricies vehicula ut id elit. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Praesent commodo cursus magna.</p>
+          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+        </div>
+        <div class="col-lg-4 wow bounceInRight">
+          <img id="profile5" class="img-circle" alt="Generic placeholder image" style="width: 140px; height: 140px;">
+          <h2>xa18.ridwan@gmail.com</h2>
+          <p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Cras mattis consectetur purus sit amet fermentum. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh.</p>
           <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
         </div>
       </div>
@@ -152,6 +166,7 @@
     <script src="js/jquery-2.1.1.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/wow.js"></script>
+    <script src="js/md5.js"></script>
 	<script src="app-js/index.js"></script>
 	<script>
 		wow = new WOW(

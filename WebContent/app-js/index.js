@@ -17,3 +17,11 @@ function signup(){
 	$("#login").hide();
 	$("#register").show();
 }
+
+function OnLoad(){
+	$("#profile1").attr('src',"http://www.gravatar.com/avatar/"+CryptoJS.MD5("herezadi@gmail.com"));
+	$("#profile2").attr('src',"http://www.gravatar.com/avatar/"+CryptoJS.MD5("elfaatta@gmail.com"));
+	$("#profile3").attr('src',"http://www.gravatar.com/avatar/"+CryptoJS.MD5("whildachaq@gmail.com"));
+	$("#profile4").attr('src',"http://www.gravatar.com/avatar/"+CryptoJS.MD5("sealovermage@gmail.com"));
+	$("#profile5").attr('src',"http://www.gravatar.com/avatar/"+CryptoJS.MD5("xa18.ridwan@gmail.com"));
+}
