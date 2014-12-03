@@ -1,5 +1,7 @@
 $("#overlay, .closeButton").on("click",function(){hideOver();});
-$(".signupbtn").on("click",function(){signup();showOver();});
+$(".signupbtn").on("click",function(){
+	window.location.href = "registration.html"
+});
 $(".loginbtn").on("click",function(){login();showOver();});
 function showOver(){
 	$("#overlay").fadeIn("slow");
@@ -12,10 +14,6 @@ function hideOver(){
 function login(){
 	$("#login").show();
 	$("#register").hide();
-}
-function signup(){
-	$("#login").hide();
-	$("#register").show();
 }
 
 function OnLoad(){

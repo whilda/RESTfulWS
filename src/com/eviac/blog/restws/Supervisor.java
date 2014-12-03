@@ -24,8 +24,7 @@ public class Supervisor {
 		JSONObject output_json = new JSONObject();
 		try 
 		{
-			MongoClient mongoClient = MONGODB.GetMongoClient();
-			DB db = mongoClient.getDB( "semanticwebservice" );
+			DB db = MONGODB.GetMongoDB();
 			DBCollection coll = db.getCollection("application");
 			
 			// Initiate Parameter

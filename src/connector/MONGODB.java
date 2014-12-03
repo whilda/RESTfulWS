@@ -9,6 +9,7 @@ import java.util.Properties;
 
 import org.json.simple.JSONObject;
 
+import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
@@ -18,7 +19,7 @@ public class MONGODB {
 	private static MongoClient mongoClient;
 	private static JSONObject jsonProp;
 	
-	public static MongoClient GetMongoClient() throws Exception{
+	public static DB GetMongoDB() throws Exception{
 		try {
 			if(jsonProp == null)
 				jsonProp = getPropValues();
@@ -34,7 +35,7 @@ public class MONGODB {
 						jsonProp.get("db_host").toString(),
 						Integer.parseInt(jsonProp.get("db_port").toString())), Arrays.asList(credential));
 			
-			return mongoClient;
+			return mongoClient.getDB(jsonProp.get("db_name").toString());
 		} catch (Throwable e) {
 			e.printStackTrace();
 			throw new Exception(e.toString());

@@ -2,7 +2,7 @@
  * 
  */
 var ws_url = "http://localhost:8080/RESTfulWS/rest";
-var ws_app_key = "aj738graAUGFWUgw87gf9f9afu";
+var ws_app_key = "kEIYWArRKhqxPGIfWnsS6wu5YADmsg";
 
 function RestServiceJs(newurl) {  
 	this.myurl = newurl;
