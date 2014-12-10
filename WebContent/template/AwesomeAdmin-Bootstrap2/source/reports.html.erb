@@ -1,0 +1,383 @@
+---
+menukey: reports
+header_text: Reports
+menu_expand: reports
+---
+
+<%content_for :subnav do%>
+<%=partial :'dashboard-navigation'%>
+<%end%>
+
+<%content_for :head do%>
+<script src="lib/jquery.peity.min.js"></script>
+<script src="lib/flot/jquery.flot.js"></script>
+<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="lib/flot/excanvas.min.js"></script><![endif]-->
+<script type="text/javascript">
+$(function () {
+    /*
+    Colors 
+    #54a0f6
+    #a93018
+    #90c654
+    #A97518
+    #41B3DF
+    */
+    $(".small.bar.graph").peity("bar", { colours: ['#54a0f6'], height: 24, width: 92});
+    $(".small.line.graph").peity("line", {strokeColour: '#84bbf9', colour: 'rgba(132,187,249, .3)', height: 25, width: 92});
+
+    //Visits
+    var visitsData = [
+        {
+            label: "Visits",
+            data: [[1, 500], [2,873], [3,639], [4,939], [5,434], [6,523], [7,239], [8, 1093], [9, 803], [10,1038], [11, 520], [12, 907]],
+            color: '#84bbf9',
+        }
+    ];
+
+    var visitsOptions = {
+        grid: {
+            borderWidth: 0
+        },
+       xaxis: {
+         ticks: [
+           [1, "Jan"],
+           [2, "Feb"],
+           [3, "March"],
+           [4, "April"],
+           [5, "May"],
+           [6, "June"],
+           [7, "July"],
+           [8, "Aug"],
+           [9, "Sept"],
+           [10, "Oct"],
+           [11, "Nov"],
+           [12, "Dec"]
+         ]
+       },   
+        series: {
+            lines: { 
+                show: true,
+                fill: true,
+                fillColor: 'rgba(132,187,249, .3)'
+            },
+            points: { show: true }
+        },
+    };
+
+    $.plot($("#visits-chart"), visitsData, visitsOptions);
+    $(window).resize(function(){
+        $.plot($("#visits-chart"), visitsData, visitsOptions);
+    });
+    //-Visits
+
+    //Conversions
+    var conversionsData = [
+        {
+            data: [[1, 10], [2,19], [3,17], [4,21], [5,15], [6,17], [7,13], [8,5], [9,8], [10,12], [11,14], [12,8]],
+            color: '#84bbf9',
+        }
+    ];
+
+    var conversionsOptions = {
+        grid: {
+            borderWidth: 0,
+            //borderColor: '#ddd',
+        },
+       yaxis: {
+           tickLength: 0,
+         ticks: [
+           [0, "0"],
+           [5, "5"],
+           [10, "10"],
+           [15, "15"],
+           [20, "20"],
+         ]
+       },
+       xaxis: {
+         tickLength: 0,
+         ticks: [
+           [1, "A"],
+           [2, "B"],
+           [3, "C"],
+           [4, "D"],
+           [5, "E"],
+           [6, "F"],
+           [7, "G"],
+           [8, "H"],
+           [9, "H"],
+           [10, "I"],
+           [11, "J"],
+           [12, "K"],
+         ]
+       },   
+        series: {
+            bars: { 
+                show: true,
+                fill: true,
+                fillColor: 'rgba(132,187,249, .3)',
+                barWidth: .8,
+                align: "center"
+            },
+        },
+    };
+
+    $(window).resize(function(){
+        $.plot($("#conversions-chart"), conversionsData, conversionsOptions);
+    });
+    $.plot($("#conversions-chart"), conversionsData, conversionsOptions);
+    //-Conversions
+
+    //SEO
+    var seoData = [
+        {
+            //label: "",
+            data: [[1, 2050], [2,3300], [3,2600], [4,2937], [5,1900], [6,2400], [7,1500], [8, 2900]],
+            color: '#a93018',
+        }
+    ];
+
+    var seoOptions = {
+        grid: {
+            borderWidth: 0
+        },
+       xaxis: {
+         ticks: [
+           [1, "Jan"],
+           [2, "Feb"],
+           [3, "March"],
+           [4, "April"],
+           [5, "May"],
+           [6, "June"],
+           [7, "July"],
+           [8, "Aug"],
+           [9, "Sept"],
+           [10, "Oct"],
+           [11, "Nov"],
+           [12, "Dec"]
+         ]
+       },   
+        series: {
+            lines: { 
+                show: true,
+                //fill: true,
+                //fillColor: 'rgba(132,187,249, .3)'
+            },
+            points: { show: true }
+        },
+    };
+
+    $.plot($("#seo-chart"), seoData, seoOptions);
+    $(window).resize(function(){
+        $.plot($("#seo-chart"), seoData, seoOptions);
+    });
+    //-seo
+});
+</script>
+<%end%>
+
+<div class="row-fluid">
+    <div class="span8">
+
+        <div class="row-fluid">
+
+            <h2>Traffic Overview</h2>
+            <div id="visits-chart" class="chart" style="width: 100%; max-width:600px;height:300px;margin:0px auto 1em auto;">
+            </div>
+
+            <h2>Stats</h2>
+            <div class="stats">
+                <div class="stat">
+                    <p class="main-detail text-warning">6,233</p>
+                    <p class="info">Visits</p>
+                </div>
+                <div class="stat">
+                    <p class="main-detail text-warning">8:13</p>
+                    <p class="info">Visit Duration</p>
+                </div>
+                <div class="stat">
+                    <p class="main-detail text-warning">9.2%</p>
+                    <p class="info">Bounce Rate</p>
+                </div>
+                <div class="stat">
+                    <p class="main-detail text-warning">77.6%</p>
+                    <p class="info">% New Visits</p>
+                </div>
+                <div class="stat">
+                    <p class="main-detail text-warning">3.05</p>
+                    <p class="info">Pages per Visit</p>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+
+            <div class="row-fluid">
+                <div class="span6">
+                    <h2>Goal for Today</h2>
+                    <ul class="unstyled">
+                        <li>4,500 Impressions <span class="pull-right strong">55%</span>
+                            <div class="progress progress-important">
+                                <div class="bar" style="width: 55%;"></div>
+                            </div>
+                        </li>
+                        <li>3,400 Unique Visitors<span class="pull-right strong">40%</span>
+                            <div class="progress progress-success">
+                                <div class="bar" style="width: 40%;"></div>
+                            </div>
+                        </li>
+                        <li>1,200 Page Views<span class="pull-right strong">80%</span>
+                            <div class="progress progress-warning">
+                                <div class="bar" style="width: 80%;"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="span6">
+                    <h2>Conversion Results</h2>
+                    <div id="conversions-chart" style="width:100%;height:200px;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row-fluid">
+                <h2>Top 5 Users</h2>
+                <div class="well widget" style="display: none;">
+                    <form class="form-inline" style="margin-bottom: 0px;">
+                        <input class="input-xlarge" placeholder="Search All Users..." type="text">
+                        <button class="btn" type="button"><i class="icon-search"></i> Go</button>
+                    </form>
+                </div>
+                <table class="table table-first-column-check">
+                  <thead>
+                    <tr>
+                      <th><input type="checkbox"></th>
+                      <th>First Name</th>
+                      <th>Last Name</th>
+                      <th>Username</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><input type="checkbox"></td>
+                      <td>Mark</td>
+                      <td>Tompson</td>
+                      <td>the_mark7</td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox"></td>
+                      <td>Ashley</td>
+                      <td>Jacobs</td>
+                      <td>ash11927</td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox"></td>
+                      <td>Audrey</td>
+                      <td>Ann</td>
+                      <td>audann84</td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox"></td>
+                      <td>Aaron</td>
+                      <td>Butler</td>
+                      <td>aaron_butler</td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox"></td>
+                      <td>Chris</td>
+                      <td>Albert</td>
+                      <td>cab79</td>
+                    </tr>
+                  </tbody>
+                </table>
+            </div>
+
+        </div>
+
+
+        <h2>Stats and a Graph</h2>
+        <div class="row-fluid">
+            <div class="span4">
+                <ul class="cards">
+                    <li>Total<span class="pull-right label label-success">9,349</span></li>
+                    <li>Organic<span class="pull-right label label-warning">2,215</span></li>
+                    <li>Paid<span class="pull-right label label-info">5,397</span></li>
+                    <li>Affiliate<span class="pull-right label">2,137</span></li>
+                </ul>
+            </div>
+            <div class="span8">
+                <div id="seo-chart" style="width: 100%; height:300px;float:right;"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="span4 sidebar">
+        <div class="widget">
+            <h2>Campaigns</h2>
+            <ul class="cards">
+                <li>
+                    <p class="title" style=" line-height: 1em; margin-top: 0em">Bounce Rate</p>
+                    <p class="pull-right text-error strong">58%</p>
+                    <span class="small line graph">5,3,9,6,5,9,7,3,5,2</span>
+                    <p class="info">Site Avg: 46.65% (-11.25%)</p>
+                </li>
+                <li>
+                    <p class="title" style=" line-height: 1em; margin-top: 0em">Unique Visitors</p>
+                    <p class="pull-right text-info strong">12,307</p>
+                    <span class="small line graph">3,4,5,6,5,6,5,4,5,2,4,5,6,2,3,2</span>
+                    <p class="info">Site Avg: 11,382 (1.25%)</p>
+                </li>
+                <li>
+                    <p class="title" style=" line-height: 1em; margin-top: 0em">Pages Per Visit</p>
+                    <p class="pull-right text-warning strong">3.27</p>
+                    <span class="small line graph">4,3,4,5,7,9,3,7,5,2,4,3,3,6,3,7</span>
+                    <p class="info">Site Avg: 2.3 (107.02%)</p>
+                </li>
+            </ul>
+        </div>
+
+        <div class="widget">
+            <h2>System Status</h2>
+            <ul class="cards compact">
+                <li>
+                    <p class="title">Software <span class="label label-success pull-down pull-right">Good</span></p>
+                    <p class="info">Business, CRM, Browser</p>
+                </li>
+                <li>
+                    <p class="title">Servers <span class="label label-info pull-down pull-right">Slow</span></p>
+                    <p class="info">Cloud, Local, Mail</p>
+                </li>
+                <li>
+                    <p class="title">Network <span class="label label-important pull-down pull-right">Poor</span></p>
+                    <p class="info">Ports, lines, cables</p>
+                </li>
+            </ul>
+        </div>
+
+        <div class="widget">
+            <h2>Campaigns</h2>
+            <ul class="cards">
+                <li>
+                    <p class="title" style=" line-height: 1em; margin-top: 0em">Bounce Rate</p>
+                    <div class="chart pull-right">
+                        <span class="small bar graph">3,3,5,4,6,7,6,2,3,2,4</span>
+                    </div>
+                    <p class="text-warning" style="font-size: 1.75em; line-height: 1em; margin-bottom: 0px;"><i class="icon-arrow-down"></i> 26%</p>
+                </li>
+                <li>
+                    <p class="title" style=" line-height: 1em; margin-top: 0em">Time on Page</p>
+                    <div class="chart pull-right">
+                        <span class="small bar graph">5,3,9,6,5,9,7,3,5,2,4</span>
+                    </div>
+                    <p class="text-info" style="font-size: 1.75em; line-height: 1em; margin-bottom: 0px;"><i class="icon-arrow-up"></i> 26%</p>
+                </li>
+                <li>
+                    <p class="title" style=" line-height: 1em; margin-top: 0em">Views Per Day</p>
+                    <div class="chart pull-right">
+                        <span class="small bar graph">4,4,9,6,5,4,5,6,5,2,4</span>
+                    </div>
+                    <p class="text-important" style="font-size: 1.75em; line-height: 1em; margin-bottom: 0px;"><i class="icon-arrow-down"></i> 26%</p>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
