@@ -1,0 +1,126 @@
+---
+menukey: tables
+header_text: Tables
+menu_expand: dashboard
+---
+
+<%content_for :subnav do%>
+<%=partial 'dashboard-navigation'%>
+<%end%>
+
+<%content_for :head do%>
+
+<script type="text/javascript" src="lib/DataTables-1.9.4/media/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="lib/DataTables-1.9.4/media/js/jquery.dataTables.bootstrap.js"></script>
+
+<script type="text/javascript">
+    $(function(){
+       $('table.data-table.sort').dataTable( {
+            "bPaginate": false,
+            "bLengthChange": false,
+            "bFilter": false,
+            "bSort": true,
+            "bInfo": false,
+            "bAutoWidth": false 
+        });
+       $('table.data-table.full').dataTable( {
+            "bPaginate": true,
+            "bLengthChange": true,
+            "bFilter": true,
+            "bSort": true,
+            "bInfo": true,
+            "bAutoWidth": true,
+            "sPaginationType": "full_numbers",
+            "sDom": '<""f>t<"F"lp>',
+            "sPaginationType": "bootstrap"
+        });
+    });
+</script>
+<%end%>
+
+<h2>Basic Table</h2>
+<table class="table table-first-column-number">
+  <thead>
+    <tr>
+      <th style="padding-left: 1em;">#</th>
+      <th>First</th>
+      <th>Last</th>
+      <th>Username</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Mark</td>
+      <td>Tompson</td>
+      <td>the_mark7</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Ashley</td>
+      <td>Jacobs</td>
+      <td>ash11927</td>
+    </tr>
+</table>
+
+<h2>Sortable Table</h2>
+<table class="table table-first-column-number data-table sort display">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>First<span class="sort-icon"><span></th>
+      <th>Last<span class="sort-icon"><span></th>
+      <th>Username<span class="sort-icon"><span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Mark</td>
+      <td>Tompson</td>
+      <td>the_mark7</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Ashley</td>
+      <td>Jacobs</td>
+      <td>ash11927</td>
+    </tr>
+</table>
+
+<h2 style="margin-bottom: -1.75em;">Data Table</h2>
+<table class="table table-first-column-number data-table display full">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>First<span class="sort-icon"><span></th>
+      <th>Last<span class="sort-icon"><span></th>
+      <th>User<span class="sort-icon"><span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <%(1...5).each do |ii|
+    names = [
+        ["TONY", "MEYER", "teyer"], 
+        ["KENDRA", "MARSHALL", "kmarshall"], 
+        ["NICHOLE", "BROOKS", "nibrooks"], 
+        ["CHRISTIE", "GRAHAM", "chgraham"], 
+        ["RAY", "JENKINS", "rjenkins"], 
+        ["KRYSTAL", "MORENO", "kmoreno"], 
+        ["MARCUS", "HERRERA", "mherrera"], 
+        ["DAVID", "ROSE", "drose"], 
+        ["DEREK", "PAYNE", "dpayne"], 
+        ["CHELSEA", "FOSTER", "cfoster"],
+        ["KEITH", "RYAN", "kryan"],
+        ["ELENA", "HAYES", "ehayes"]
+    ]
+    names.each_with_index do |name, index|%>
+    <tr>
+      <td><%=index + (ii*names.length) - names.length + 1%></td>
+      <td><%=names[index][0]%></td>
+      <td><%=names[index][1]%></td>
+      <td><%=names[index][2]%></td>
+    </tr>
+    <%end%>
+    <%end%>
+</table>

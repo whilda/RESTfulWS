@@ -1,0 +1,70 @@
+---
+menukey: pricing
+header_text: Pricing
+menu_expand: pricing
+---
+
+<%content_for :subnav do%>
+<%=partial 'dashboard-navigation'%>
+<%end%>
+
+<%content_for :head do%>
+    <script src="lib/jquery.isotope.min.js"></script>
+    <link rel="stylesheet" href="stylesheets/isotope.css">
+    <link rel="stylesheet" href="lib/fancy-zoom/css/fancyzoom.css" type="text/css" />
+	<script type="text/javascript" src="lib/fancy-zoom/src/fancyzoom.js"></script>
+	<script type="text/javascript" charset="utf-8">
+		$(document).ready(function() {
+			$('#gallery img').fancyZoom({closeOnClick: true, directory:'lib/fancy-zoom/img/'});
+		});
+	</script>
+
+<%end%>
+
+<h2>Upgrade your account<span class="info">All plans include a 30 day, money back guarantee.</span></h2>
+<div class="row-fluid pricing">
+    <div class="product span3">
+        <h2 class="text-info">Economy</h2>
+        <ul>
+            <li>10 users</li>
+            <li>Limited Access</li>
+            <li>5TB of space</li>
+            <li>No Support</li>
+        </ul>          
+        <p class="price">$8.99 / month</p>
+        <p class="call-to-action"><a class="btn btn-success" href="#"><i class="icon-ok"></i> Select plan</a></p>
+    </div>
+    <div class="product span3">
+        <h2 class="text-warning">Bronze</h2>
+        <ul>
+            <li>20 users</li>
+            <li>Unlimited access</li>
+            <li>5TB of space</li>
+            <li>Email Support</li>
+        </ul>          
+        <p class="price">$24.99 / month</p>
+        <p class="call-to-action"><a class="btn btn-success" href="#"><i class="icon-ok"></i> Select plan</a></p>
+    </div>
+    <div class="product popular span3">
+        <h2 class="text-important">Silver</h2>
+        <ul>
+            <li>50 users</li>
+            <li>Unlimited access</li>
+            <li>3TB of space</li>
+            <li>Priority Email support</li>
+        </ul>          
+        <p class="price">$75.99 / month</p>
+        <p class="call-to-action"><a class="btn btn-success" href="#"><i class="icon-ok"></i> Select plan</a></p>
+    </div>
+    <div class="product span3">
+        <h2 class="muted">Enterprise</h2>
+        <ul>
+            <li>Unlimited users</li>
+            <li>Unlimited access</li>
+            <li>Unlimited space</li>
+            <li>24/7 Phone Support</li>
+        </ul>          
+        <p class="price">Contact us for pricing</p>
+        <p class="call-to-action"><a class="btn" href="#"><i class="icon-ok"></i> Contact Sales</a></p>
+    </div>
+</div>

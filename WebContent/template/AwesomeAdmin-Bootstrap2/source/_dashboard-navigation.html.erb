@@ -1,0 +1,22 @@
+
+<%menu_items = [
+    {:name=>"index", :caption=>"Dashboard", :icon=>:home},
+    {:name=>"Reports", :caption=>"Reports", :icon=>:'bar-chart'},
+    {:name=>"Components", :caption=>"UI Features", :icon=>:briefcase},
+    {:name=>"Pricing", :caption=>"Pricing", :icon=>:magic},
+    {:name=>"Media", :caption=>nil, :icon=>:film},
+    {:name=>"Blog", :caption=>"Blog", :icon=>:beaker},
+    {:name=>"Help", :caption=>"Help", :icon=>:'question-sign'},
+    {:name=>"Faq", :caption=>"Faq", :icon=>:book},
+    {:name=>"Calendar", :caption=>nil, :icon=>:calendar},
+    {:name=>"Forms", :caption=>"Forms", :icon=>:tasks},
+    {:name=>"Tables", :caption=>"Tables", :icon=>:table},
+    {:name=>"Mobile", :caption=>"Mobile", :icon=>:'comment-alt', :'visible-mobile'=>false},
+    {:name=>"Icons", :caption=>"Font Awesome", :icon=>:heart},
+]%>
+
+<ul id="dashboard-menu" class="nav nav-list">
+    <%menu_items.each do |item|%>
+        <%=menu_item(item[:name], item[:caption], item[:icon])%>
+    <%end%>
+</ul>

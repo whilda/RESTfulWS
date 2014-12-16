@@ -1,0 +1,7 @@
+source :rubygems
+
+gem "middleman", "~>3.0.0"
+gem "less"
+gem 'libv8', '~> 3.11.8'
+gem "therubyracer"
+gem "rubyzip"

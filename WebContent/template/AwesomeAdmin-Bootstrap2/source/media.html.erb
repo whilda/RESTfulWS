@@ -1,0 +1,65 @@
+---
+menukey: media
+header_text: Media
+menu_expand: media
+---
+
+<%content_for :subnav do%>
+<%=partial 'dashboard-navigation'%>
+<%end%>
+
+
+<%content_for :head do%>
+    <script src="lib/jquery.isotope.min.js"></script>
+    <link rel="stylesheet" href="stylesheets/isotope.css">
+    <link rel="stylesheet" href="lib/fancy-zoom/css/fancyzoom.css" type="text/css" />
+	<script type="text/javascript" src="lib/fancy-zoom/src/fancyzoom.js"></script>
+	<script type="text/javascript" charset="utf-8">
+		$(document).ready(function() {
+			$('#gallery img').fancyZoom({closeOnClick: true, directory:'lib/fancy-zoom/img/'});
+		});
+	</script>
+
+<%end%>
+
+<script type="text/javascript">
+
+$(function(){
+    
+    $('#gallery').imagesLoaded( function(){
+        $(this).isotope();
+    });
+
+    fancyFilter('.filter', '#gallery');
+
+});
+
+</script>
+
+<h2>Gallery <span class="info">Use the button below to filter items.</span></h2>
+
+<ul class="filter nav nav-pills">
+  <li class="active">
+    <a href="#all" data-filter=".element">All</a>
+  </li>
+  <li><a href="#images" data-filter=".sampleFilterOnetrue">Images</a></li>
+  <li><a href="#videos" data-filter=".sampleFilterTwotrue">Videos</a></li>
+</ul>
+
+<div id="gallery" class="gallery" style="clear: both;">
+    <%Dir.chdir "source/images/gallery/" do%>
+        <%Dir.glob("*.jpg").each_with_index do |file, index|%>
+            <div class="element thumbnail pull-left sampleFilterOne<%=index%2==0 && index > 0%> sampleFilterTwo<%=index%3!=0 && index > 0%>">
+                <a href="#">
+                <img src="images/gallery/<%=file.to_s%>">
+                </a>
+                <div class="image-data">
+                    <span class="pull-right"><a href="#"><%=i 'thumbs-up'%></a></span>
+                    <span class="title">image <%=index + 1%></span>
+                </div>
+            </div>
+            
+        <%end%>
+    <%end%>
+    <div class="clearfix"></div>
+</div>
