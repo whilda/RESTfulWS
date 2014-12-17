@@ -14,7 +14,7 @@ import com.mongodb.DBObject;
 import connector.MONGODB;
 
 @Path("f")
-public class Login {
+public class Service {
 	@POST
 	@Path("/login")
 	@SuppressWarnings("unchecked")
@@ -67,6 +67,51 @@ public class Login {
 				output_json.put("message","Login Failure");
 			}
 			
+		}
+		catch (Exception ex)
+		{
+			output_json.put("code",-1);
+			output_json.put("message",ex.toString());
+		}
+		
+		return output_json.toString();
+	}
+	@POST
+	@Path("/isexist")
+	@SuppressWarnings("unchecked")
+	public String isUserExist(String jsonString)
+	{
+		BasicDBObject where_query;
+		DBObject find_objek_student;
+		DBObject find_objek_supervisor;
+		
+		JSONObject output_json = new JSONObject();
+		JSONObject input_json ;
+		String user_name;
+		
+		try
+		{
+			DB db = MONGODB.GetMongoDB();
+			DBCollection collStudent = db.getCollection("student");
+			DBCollection collSupervisor = db.getCollection("supervisor");
+			
+			input_json = (JSONObject) JSONValue.parse(jsonString);
+			user_name = input_json.get("username").toString();
+			
+			where_query = new BasicDBObject("_id",user_name);
+			find_objek_student = collStudent.findOne(where_query);
+			find_objek_supervisor = collSupervisor.findOne(where_query);
+			
+			if (find_objek_student != null || find_objek_supervisor != null)
+			{
+				output_json.put("code",1);
+				output_json.put("message","username sudah terdaftar");
+			}
+			else
+			{
+				output_json.put("code",0);
+				output_json.put("message","username belum terdaftar");
+			}			
 		}
 		catch (Exception ex)
 		{

@@ -19,7 +19,7 @@ import com.mongodb.DBCursor;
 import connector.MONGODB;
 
 @Path("g")
-public class GeneralService {	
+public class OwnService {	
 	
 	@POST
 	@Path("/app")
@@ -86,7 +86,7 @@ public class GeneralService {
     }
 
     public static String md5(String txt) {
-        return GeneralService.getHash(txt, "MD5");
+        return OwnService.getHash(txt, "MD5");
     }
 	@GET
 	@Path("/appkey/{AppKey}")

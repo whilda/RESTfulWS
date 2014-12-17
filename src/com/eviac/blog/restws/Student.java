@@ -33,7 +33,7 @@ public class Student {
 			
 			JSONObject input_json =(JSONObject) JSONValue.parse(jsonString);
 			String appKey = input_json.get("appkey").toString();
-			if(!GeneralService.IsExistData("key", appKey, coll)){
+			if(!OwnService.IsExistData("key", appKey, coll)){
 				throw new Exception("Appkey was wrong. Please register your application to admin@udinus.com");
 			}
 			
@@ -48,7 +48,7 @@ public class Student {
 			
 			BasicDBObject objek_db = new BasicDBObject();
 			objek_db.put("_id",username);
-			objek_db.put("password",GeneralService.md5(password));
+			objek_db.put("password",OwnService.md5(password));
 			objek_db.put("nim",nim);
 			objek_db.put("name",name);
 			objek_db.put("address",address);
@@ -68,51 +68,7 @@ public class Student {
 		
 		return output_json.toString();
 	}
-	
-	@POST
-	@Path("/isUsernameExist")
-	@SuppressWarnings("unchecked")
-	public String isUserExist(String jsonString)
-	{
-		BasicDBObject where_query;
-		DBObject find_objek;
-		JSONObject output_json = new JSONObject();
-		JSONObject input_json ;
-		String user_name;
 		
-		try
-		{
-			DB db = MONGODB.GetMongoDB();
-			DBCollection coll = db.getCollection("application");
-			
-			input_json = (JSONObject) JSONValue.parse(jsonString);
-			user_name = input_json.get("username").toString();
-			
-			where_query = new BasicDBObject("username",user_name);
-			find_objek = coll.findOne(where_query);
-			
-			if (find_objek==null)
-			{
-				output_json.put("code",0);
-				output_json.put("message","username belum terdaftar");
-			}
-			else
-			{
-				output_json.put("code",1);
-				output_json.put("message","username sudah terdaftar");
-			}
-			
-			
-		}
-		catch (Exception ex)
-		{
-			output_json.put("code",-1);
-			output_json.put("message",ex.toString());
-		}
-		
-		return output_json.toString();
-	}
-	
 	@GET
 	@Path("/{username}/{Appkey}")
 	@SuppressWarnings("unchecked")
