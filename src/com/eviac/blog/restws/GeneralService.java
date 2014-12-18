@@ -16,10 +16,12 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
+
 import connector.MONGODB;
 
 @Path("g")
-public class OwnService {	
+public class GeneralService {	
+	public static String adminContact = "admin@udinus.com";
 	
 	@POST
 	@Path("/app")
@@ -86,16 +88,12 @@ public class OwnService {
     }
 
     public static String md5(String txt) {
-        return OwnService.getHash(txt, "MD5");
+        return GeneralService.getHash(txt, "MD5");
     }
-	@GET
-	@Path("/appkey/{AppKey}")
-	@SuppressWarnings("unchecked")
-	public String AppKey(@PathParam("AppKey") String appKey) 
-	{		
-		JSONObject outputJsonObj = new JSONObject();
-		outputJsonObj.put("code", 1);
-	    outputJsonObj.put("data", appKey);
-		return outputJsonObj.toString();
-	}
+    
+    public static void AppkeyCheck(String appKey,DBCollection coll) throws Exception{
+		if(!GeneralService.IsExistData("key", appKey, coll)){
+			throw new Exception("Appkey was wrong. Please register your application to "+GeneralService.adminContact);
+		}
+    }
 }
