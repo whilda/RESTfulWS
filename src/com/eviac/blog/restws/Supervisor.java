@@ -155,4 +155,57 @@ public class Supervisor {
 		
 		return output_json.toString();	
 	}
+	
+	@POST
+	@Path("/issupervisor")
+	@SuppressWarnings("unchecked")
+	public String isUserExist(String jsonString)
+	{
+		BasicDBObject where_query;
+		DBObject find_objek_supervisor;
+		
+		JSONObject output_json = new JSONObject();
+		JSONObject input_json ;
+		String student;
+		String supervisor;
+		
+		try
+		{
+			DB db = MONGODB.GetMongoDB();
+			DBCollection collSupervisor = db.getCollection("supervisor");
+			
+			input_json = (JSONObject) JSONValue.parse(jsonString);
+			GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collSupervisor);
+			
+			student = input_json.get("student").toString();
+			supervisor = input_json.get("supervisor").toString();
+			
+			where_query = new BasicDBObject("_id",supervisor);
+			find_objek_supervisor = collSupervisor.findOne(where_query);
+			
+			if (find_objek_supervisor != null)
+			{
+				String studentString = find_objek_supervisor.get("student").toString();
+				JSONArray student_array = (JSONArray) JSONValue.parse(student);
+				if(student_array.contains(student)){
+					output_json.put("code",1);
+					output_json.put("message","true");
+				}else{
+					output_json.put("code",0);
+					output_json.put("message","false");
+				}
+			}
+			else
+			{
+				throw new Exception("Supervisor not found");
+			}			
+		}
+		catch (Exception ex)
+		{
+			output_json.put("code",-1);
+			output_json.put("message",ex.toString());
+		}
+		
+		return output_json.toString();
+	}
 }
