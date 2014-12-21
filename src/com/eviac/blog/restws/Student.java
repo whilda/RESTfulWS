@@ -61,9 +61,12 @@ public class Student {
 			
 			objek_db.put("status",Student.STATUS_IDDLE);
 			objek_db.put("supervisor","");
-			objek_db.put("thesis","");
-			objek_db.put("task","");
-			objek_db.put("activity","");
+			objek_db.put("thesis.topic", "");
+			objek_db.put("thesis.title", "");
+			objek_db.put("thesis.description", "");
+			objek_db.put("thesis.field", new JSONArray());
+			objek_db.put("task",new JSONArray());
+			objek_db.put("activity",new JSONArray());
 			
 			collStudent.insert(objek_db);
 			
@@ -190,7 +193,7 @@ public class Student {
 			ObjectSet.put("thesis.topic",topic);
 			ObjectSet.put("thesis.title",title);
 			ObjectSet.put("thesis.description",description);
-			ObjectSet.put("thesis.field",field);
+			ObjectSet.put("thesis.field",(JSONArray) JSONValue.parse(field));
 			
 			BasicDBObject ObjectQuery = new BasicDBObject();
 			ObjectId.put("$set", ObjectSet);
@@ -235,7 +238,7 @@ public class Student {
 			ObjectSet.put("thesis.topic","");
 			ObjectSet.put("thesis.title","");
 			ObjectSet.put("thesis.description","");
-			ObjectSet.put("thesis.field","");
+			ObjectSet.put("thesis.field",new JSONArray());
 			
 			BasicDBObject ObjectQuery = new BasicDBObject();
 			ObjectId.put("$set", ObjectSet);
@@ -252,5 +255,82 @@ public class Student {
 		}
 		
 		return output_json.toString();
-	}	
+	}
+	
+	@POST
+	@Path("/propose")
+	@SuppressWarnings("unchecked")
+	public String Propose(String jsonString) 
+	{		
+		JSONObject output_json = new JSONObject();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			DBCollection collApp = db.getCollection("application");
+			DBCollection collStudent = db.getCollection("student");
+			DBCollection collSupervisor = db.getCollection("supervisor");
+			
+			JSONObject input_json = (JSONObject) JSONValue.parse(jsonString);
+			GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collApp);
+			
+			// Initiate Parameter
+			String student = input_json.get("student").toString();
+			String supervisor = input_json.get("supervisor").toString();
+			
+			DBObject studentObject = GeneralService.GetDBObjectFromId(collStudent, student);
+			
+			if((int) studentObject.get("status") == -1){
+				UpdateProposeStudent(collStudent, student, supervisor);
+				UpdateProposeSupervisor(collSupervisor, student, supervisor, 
+						studentObject);
+				
+				output_json.put("code", 1);
+				output_json.put("message","success");
+			}else{
+				output_json.put("code", 0);
+				output_json.put("message","Wrong status");
+			}
+		} 
+		catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("message",e.toString());
+		}
+		
+		return output_json.toString();
+	}
+
+	private void UpdateProposeSupervisor(DBCollection collSupervisor,
+			String student, String supervisor, DBObject studentObject) {
+		BasicDBObject ObjectId = new BasicDBObject();
+		ObjectId.put("_id",supervisor);
+		
+		BasicDBObject ObjectToBeSet = new BasicDBObject();
+		ObjectToBeSet.put("username",student);
+		ObjectToBeSet.put("thesis",studentObject.get("thesis"));
+		
+		BasicDBObject ObjectSet = new BasicDBObject(); 
+		ObjectSet.put("proposal",ObjectToBeSet);
+		
+		BasicDBObject ObjectQuery = new BasicDBObject();
+		ObjectQuery.put("$push", ObjectSet);
+		
+		collSupervisor.update(ObjectId, ObjectQuery);
+	}
+
+	private void UpdateProposeStudent(DBCollection collStudent, String student,
+			String supervisor) {
+		BasicDBObject ObjectId = new BasicDBObject();
+		ObjectId.put("_id",student);
+		
+		BasicDBObject ObjectSet = new BasicDBObject(); 
+		ObjectSet.put("status",0);
+		ObjectSet.put("supervisor",supervisor);
+		
+		BasicDBObject ObjectQuery = new BasicDBObject();
+		ObjectId.put("$set", ObjectSet);
+		
+		collStudent.updateMulti(ObjectId, ObjectQuery);
+	}
 }

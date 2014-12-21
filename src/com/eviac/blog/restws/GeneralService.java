@@ -16,6 +16,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
 
 import connector.MONGODB;
 
@@ -96,4 +97,9 @@ public class GeneralService {
 			throw new Exception("Appkey was wrong. Please register your application to "+GeneralService.adminContact);
 		}
     }
+    public static DBObject GetDBObjectFromId(DBCollection collStudent, String student) {
+		BasicDBObject studentIdQuery = new BasicDBObject();
+		studentIdQuery.put("_id",student);
+		return collStudent.findOne(studentIdQuery);
+	}
 }
