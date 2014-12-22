@@ -5,6 +5,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -247,30 +248,32 @@ public class Supervisor {
 		return output_json.toString();
 	}
 	
-	// Sini Belum
 	private void UpdateProposeSupervisor(DBCollection collSupervisor, String student, String supervisor) {
 		BasicDBObject ObjectId = new BasicDBObject();
-		ObjectId.put("_id",supervisor);
-		
+		BasicDBObject ObjectToBeRemove = new BasicDBObject();
+		BasicDBObject ObjectQueryRemove = new BasicDBObject();
 		BasicDBObject ObjectToBeSet = new BasicDBObject();
-		ObjectToBeSet.put("username",student);
-		ObjectToBeSet.put("thesis",studentObject.get("thesis"));
+		BasicDBObject ObjectQuerySet = new BasicDBObject();
 		
-		BasicDBObject ObjectSet = new BasicDBObject(); 
-		ObjectSet.put("proposal",ObjectToBeSet);
+		ObjectId.put("_id",supervisor);		
+		ObjectToBeRemove.put("proposal",new BasicDBObject("username",student));
+		ObjectQueryRemove.put("$pull", ObjectToBeRemove);
 		
-		BasicDBObject ObjectQuery = new BasicDBObject();
-		ObjectQuery.put("$push", ObjectSet);
+		collSupervisor.update(ObjectId, ObjectQueryRemove);
 		
-		collSupervisor.update(ObjectId, ObjectQuery);
+		ObjectToBeSet.put("student",student);
+		ObjectQuerySet.put("$push", ObjectToBeSet);
+		collSupervisor.update(ObjectId, ObjectQuerySet);
 	}
 
 	private void UpdateProposeStudent(DBCollection collStudent, String student,
 			String supervisor, String code) {
 		BasicDBObject ObjectId = new BasicDBObject();
+		BasicDBObject ObjectSet = new BasicDBObject();
+		BasicDBObject ObjectQuery = new BasicDBObject();
+		
 		ObjectId.put("_id",student);
 		
-		BasicDBObject ObjectSet = new BasicDBObject();
 		if(code.equals("1")){
 			ObjectSet.put("status",1);
 		}else{
@@ -278,9 +281,146 @@ public class Supervisor {
 			ObjectSet.put("supervisor","");
 		}
 		
-		BasicDBObject ObjectQuery = new BasicDBObject();
 		ObjectId.put("$set", ObjectSet);
 		
 		collStudent.updateMulti(ObjectId, ObjectQuery);
+	}
+	
+	@POST
+	@Path("/createtemplate")
+	@SuppressWarnings("unchecked")
+	public String CreateTemplate(String jsonString) 
+	{		
+		JSONObject output_json = new JSONObject();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			DBCollection collApp = db.getCollection("application");
+			DBCollection collSupervisor = db.getCollection("supervisor");
+			
+			JSONObject input_json = (JSONObject) JSONValue.parse(jsonString);
+			GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collApp);
+			
+			// Initiate Parameter
+			String username = input_json.get("username").toString();
+			String name = input_json.get("name").toString();
+			String description = input_json.get("description").toString();
+			JSONArray task=(JSONArray) JSONValue.parse(input_json.get("task").toString());
+			
+			DBObject objectId = new BasicDBObject("_id",username);
+			
+			DBObject objectToBeSet = new BasicDBObject();
+			objectToBeSet.put("name", name);
+			objectToBeSet.put("code", GetTemplateCode(username,collSupervisor));
+			objectToBeSet.put("description", description);
+			objectToBeSet.put("task", task);
+			
+			DBObject objectToBeQuery = new BasicDBObject();
+			objectToBeQuery.put("template", objectToBeSet);
+			
+			DBObject objectquery = new BasicDBObject("$push",objectToBeQuery);
+			
+			collSupervisor.update(objectId, objectquery);
+				
+			output_json.put("code", 1);
+			output_json.put("message","success");
+		} 
+		catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("message",e.toString());
+		}
+		
+		return output_json.toString();
+	}
+
+	private String GetTemplateCode(String username, DBCollection coll) {
+		JSONObject objectDB = null;
+		String tempKey = "";
+		do{
+			tempKey = RandomStringUtils.randomAlphanumeric(5);
+			objectDB = (JSONObject) coll.findOne(new BasicDBObject("_id",username).append("template.code", tempKey));
+		}while(objectDB == null);
+		return tempKey;
+	}
+	
+	@POST
+	@Path("/updatetemplate")
+	@SuppressWarnings("unchecked")
+	public String UpdateTemplate(String jsonString) 
+	{		
+		JSONObject output_json = new JSONObject();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			DBCollection collApp = db.getCollection("application");
+			DBCollection collSupervisor = db.getCollection("supervisor");
+			
+			JSONObject input_json = (JSONObject) JSONValue.parse(jsonString);
+			GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collApp);
+			
+			// Initiate Parameter
+			String username = input_json.get("username").toString();
+			String code = input_json.get("code").toString();
+			String name = input_json.get("name").toString();
+			String description = input_json.get("description").toString();
+			JSONArray task=(JSONArray) JSONValue.parse(input_json.get("task").toString());
+				
+			DBObject objectFind	= new BasicDBObject("_id",username).append("template.code", code);
+			DBObject objectToSet= new BasicDBObject("template.$.name",name)
+											.append("template.$.description", description)
+											.append("template.$.task", task);
+			DBObject objectSet= new BasicDBObject("$set",objectToSet);
+			collSupervisor.update(objectFind, objectSet);
+			
+			output_json.put("code", 1);
+			output_json.put("message","success");
+		} 
+		catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("message",e.toString());
+		}
+		
+		return output_json.toString();
+	}
+	
+	@POST
+	@Path("/deletetemplate")
+	@SuppressWarnings("unchecked")
+	public String DeleteTemplate(String jsonString) 
+	{		
+		JSONObject output_json = new JSONObject();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			DBCollection collApp = db.getCollection("application");
+			DBCollection collSupervisor = db.getCollection("supervisor");
+			
+			JSONObject input_json = (JSONObject) JSONValue.parse(jsonString);
+			GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collApp);
+			
+			// Initiate Parameter
+			String username = input_json.get("username").toString();
+			String code = input_json.get("code").toString();
+				
+			DBObject objectFind	= new BasicDBObject("_id",username);
+			DBObject objectToSet= new BasicDBObject("template",new BasicDBObject("code",code));
+			DBObject objectSet= new BasicDBObject("$pull",objectToSet);
+			collSupervisor.update(objectFind, objectSet);
+			
+			output_json.put("code", 1);
+			output_json.put("message","success");
+		} 
+		catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("message",e.toString());
+		}
+		
+		return output_json.toString();
 	}
 }

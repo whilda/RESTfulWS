@@ -1,10 +1,13 @@
 package com.eviac.blog.restws;
 
+import java.util.Date;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -280,7 +283,7 @@ public class Student {
 			
 			DBObject studentObject = GeneralService.GetDBObjectFromId(collStudent, student);
 			
-			if((int) studentObject.get("status") == -1){
+			if((int) studentObject.get("status") == STATUS_IDDLE){
 				UpdateProposeStudent(collStudent, student, supervisor);
 				UpdateProposeSupervisor(collSupervisor, student, supervisor, 
 						studentObject);
@@ -332,5 +335,80 @@ public class Student {
 		ObjectId.put("$set", ObjectSet);
 		
 		collStudent.updateMulti(ObjectId, ObjectQuery);
+	}
+	
+	@POST
+	@Path("/inputcode")
+	@SuppressWarnings("unchecked")
+	public String InputCode(String jsonString) 
+	{		
+		JSONObject output_json = new JSONObject();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			DBCollection collApp = db.getCollection("application");
+			DBCollection collStudent = db.getCollection("student");
+			DBCollection collSupervisor = db.getCollection("supervisor");
+			
+			JSONObject input_json = (JSONObject) JSONValue.parse(jsonString);
+			GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collApp);
+			
+			// Initiate Parameter
+			String student = input_json.get("username").toString();
+			String code = input_json.get("code").toString();
+			
+			DBObject studentObject = GeneralService.GetDBObjectFromId(collStudent, student);			
+			if((int) studentObject.get("status") == Student.STATUS_ASSIGN){
+				DBObject queryObject = new BasicDBObject();
+				queryObject.put("_id", studentObject.get("supervisor").toString());
+				queryObject.put("template.code", code);
+				DBObject supervisorObject = collSupervisor.findOne(queryObject,new BasicDBObject("template.$",1)); 
+				if(supervisorObject != null){
+					JSONArray templates = (JSONArray) JSONValue.parse(supervisorObject.get("template").toString());
+					JSONObject templateObj = (JSONObject ) templates.get(0);
+					JSONArray tasks = (JSONArray) JSONValue.parse(templateObj.get("task").toString());
+					for(int i = 0; i < tasks.size(); i++){
+						JSONObject obj = (JSONObject) tasks.get(i);
+						obj.put("id_task", GetTaskID(collStudent,student));
+						obj.put("status", 0);
+						obj.put("created_date", new Date());
+						obj.put("updated_date", new Date());
+						obj.put("file", new JSONArray());
+						obj.put("comment", new JSONArray());
+						
+						BasicDBObject ObjectQuery = new BasicDBObject();
+						ObjectQuery.put("$push", new BasicDBObject("task",obj));
+						
+						collStudent.update(new BasicDBObject("_id",student), ObjectQuery);
+					}
+					output_json.put("code", 1);
+					output_json.put("message","success");
+				}else{
+					output_json.put("code", 0);
+					output_json.put("message","Wrong code");
+				}
+			}else{
+				output_json.put("code", 0);
+				output_json.put("message","Wrong status");
+			}
+		} 
+		catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("message",e.toString());
+		}
+		
+		return output_json.toString();
+	}
+
+	private String GetTaskID(DBCollection coll,String username) {
+		JSONObject objectDB = null;
+		String tempKey = "";
+		do{
+			tempKey = RandomStringUtils.randomAlphanumeric(5);
+			objectDB = (JSONObject) coll.findOne(new BasicDBObject("_id",username).append("task.id_task", tempKey));
+		}while(objectDB == null);
+		return tempKey;
 	}
 }
