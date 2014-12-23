@@ -1,11 +1,18 @@
 package com.eviac.blog.restws;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Date;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.json.simple.JSONArray;
@@ -18,6 +25,9 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import com.sun.jersey.core.header.ContentDisposition;
+import com.sun.jersey.multipart.FormDataBodyPart;
+import com.sun.jersey.multipart.FormDataMultiPart;
 
 import connector.MONGODB;
 
@@ -26,7 +36,8 @@ public class Student {
 	public static int STATUS_IDDLE = -1;
 	public static int STATUS_PROPOSE = 0;
 	public static int STATUS_ASSIGN = 1;
-	public static int STATUS_GRADUATE = 2;
+	public static int STATUS_ACTIVE = 2;
+	public static int STATUS_GRADUATE = 3;
 	
 	@POST
 	@Path("/register")
@@ -370,7 +381,7 @@ public class Student {
 					JSONArray tasks = (JSONArray) JSONValue.parse(templateObj.get("task").toString());
 					for(int i = 0; i < tasks.size(); i++){
 						JSONObject obj = (JSONObject) tasks.get(i);
-						obj.put("id_task", GetTaskID(collStudent,student));
+						obj.put("id_task", GeneralService.GetTaskID(collStudent,student));
 						obj.put("status", 0);
 						obj.put("created_date", new Date());
 						obj.put("updated_date", new Date());
@@ -382,6 +393,12 @@ public class Student {
 						
 						collStudent.update(new BasicDBObject("_id",student), ObjectQuery);
 					}
+					
+					BasicDBObject ObjectQuery = new BasicDBObject();
+					ObjectQuery.put("$set", new BasicDBObject("status",STATUS_ACTIVE));
+					
+					collStudent.update(new BasicDBObject("_id",student), ObjectQuery);
+					
 					output_json.put("code", 1);
 					output_json.put("message","success");
 				}else{
@@ -401,14 +418,77 @@ public class Student {
 		
 		return output_json.toString();
 	}
+	
+	@POST
+	@Path("/creatework")
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@SuppressWarnings("unchecked")
+	public String CreateWork(FormDataMultiPart form) 
+	{		
+		JSONObject output_json = new JSONObject();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			DBCollection collApp = db.getCollection("application");
+			DBCollection collStudent = db.getCollection("student");
+			
+			String appKey = form.getField("appkey").toString();
+			GeneralService.AppkeyCheck(appKey,collApp);
+			
+			// Initiate Parameter
+			FormDataBodyPart filePart = form.getField("file");
+			String username = form.getField("username").toString();
+			
+			ContentDisposition headerOfFilePart =  filePart.getContentDisposition();		 
+			InputStream fileInputStream = filePart.getValueAs(InputStream.class); 
+			String filePath = "./fileupload/"+username+"/"+ headerOfFilePart.getFileName(); 
+			GeneralService.saveFile(fileInputStream, filePath); 
+			
+			UpdateFinalFile(collStudent, username, headerOfFilePart, filePath);
+			ChangeStatus(collStudent, username);
+			
+			output_json.put("code", 1);
+			output_json.put("message","success");
+		} 
+		catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("message",e.toString());
+		}
+		
+		return output_json.toString();
+	}
 
-	private String GetTaskID(DBCollection coll,String username) {
-		JSONObject objectDB = null;
-		String tempKey = "";
-		do{
-			tempKey = RandomStringUtils.randomAlphanumeric(5);
-			objectDB = (JSONObject) coll.findOne(new BasicDBObject("_id",username).append("task.id_task", tempKey));
-		}while(objectDB == null);
-		return tempKey;
+	private void ChangeStatus(DBCollection collStudent, String username) {
+		DBObject ObjectId = new BasicDBObject();
+		ObjectId.put("_id",username);
+		
+		DBObject ObjectToBeSet = new BasicDBObject();
+		ObjectToBeSet.put("status",STATUS_GRADUATE);
+		
+		DBObject ObjectQuery = new BasicDBObject();
+		ObjectQuery.put("$set", ObjectToBeSet);
+		
+		collStudent.update(ObjectId, ObjectQuery);
+	}
+
+	private void UpdateFinalFile(DBCollection collStudent, String username,
+			ContentDisposition headerOfFilePart, String filePath) {
+		JSONObject fileObj = new JSONObject();
+		fileObj.put("filename", headerOfFilePart.getFileName());
+		fileObj.put("url", filePath);
+		fileObj.put("upload_date", new Date());
+		
+		DBObject ObjectId = new BasicDBObject();
+		ObjectId.put("_id",username);
+		
+		DBObject ObjectToBeSet = new BasicDBObject();
+		ObjectToBeSet.put("final",fileObj);
+		
+		DBObject ObjectQuery = new BasicDBObject();
+		ObjectQuery.put("$set", ObjectToBeSet);
+		
+		collStudent.update(ObjectId, ObjectQuery);
 	}
 }

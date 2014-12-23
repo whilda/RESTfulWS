@@ -1,5 +1,11 @@
 package com.eviac.blog.restws;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -102,4 +108,31 @@ public class GeneralService {
 		studentIdQuery.put("_id",student);
 		return collStudent.findOne(studentIdQuery);
 	}
+    
+    public static String GetTaskID(DBCollection coll,String username) {
+		JSONObject objectDB = null;
+		String tempKey = "";
+		do{
+			tempKey = RandomStringUtils.randomAlphanumeric(5);
+			objectDB = (JSONObject) coll.findOne(new BasicDBObject("_id",username).append("task.id_task", tempKey));
+		}while(objectDB == null);
+		return tempKey;
+	}
+    
+    public static void saveFile(InputStream uploadedInputStream, String serverLocation) throws IOException{
+        OutputStream outpuStream = new FileOutputStream(new File(
+                serverLocation));
+        int read = 0;
+        byte[] bytes = new byte[1024];
+
+        outpuStream = new FileOutputStream(new File(serverLocation));
+        while ((read = uploadedInputStream.read(bytes)) != -1) {
+            outpuStream.write(bytes, 0, read);
+        }
+
+        outpuStream.flush();
+        outpuStream.close();
+
+        uploadedInputStream.close();
+}
 }
