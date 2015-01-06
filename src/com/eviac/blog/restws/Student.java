@@ -486,4 +486,51 @@ public class Student {
 		
 		collStudent.update(ObjectId, ObjectQuery);
 	}
+	
+	@POST
+	@Path("/editprofile")
+	@SuppressWarnings("unchecked")
+	public String EditStudentProfile(String jsonString) 
+	{		
+		JSONObject output_json = new JSONObject();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			DBCollection collApp = db.getCollection("application");
+			DBCollection collStudent = db.getCollection("student");
+			
+			JSONObject input_json = (JSONObject) JSONValue.parse(jsonString);
+			GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collApp);
+			
+			String username = input_json.get("username").toString();
+			String address = input_json.get("address").toString();
+			String handphone = input_json.get("handphone").toString();
+			String email = input_json.get("email").toString();
+			
+			BasicDBObject ObjectId = new BasicDBObject();
+			BasicDBObject ObjectSet = new BasicDBObject();
+			BasicDBObject ObjectQuery = new BasicDBObject();
+			
+			ObjectId.put("_id",username);
+			
+			ObjectSet.put("address",address);
+			ObjectSet.put("handphone",handphone);
+			ObjectSet.put("email",email);
+			
+			ObjectId.put("$set", ObjectSet);
+			
+			collStudent.update(ObjectId, ObjectQuery);
+			
+			output_json.put("code",1);
+			output_json.put("message","success");
+		} 
+		catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("message",e.toString());
+		}
+		
+		return output_json.toString();
+	}
 }
