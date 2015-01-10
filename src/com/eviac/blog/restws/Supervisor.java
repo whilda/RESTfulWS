@@ -616,12 +616,12 @@ public class Supervisor {
 		{
 			db = MONGODB.GetMongoDB();
 			DBCollection collApp = db.getCollection("application");
-			DBCollection collStudent = db.getCollection("supervisor");
+			DBCollection collSupervisor = db.getCollection("supervisor");
 			
 			JSONObject input_json = (JSONObject) JSONValue.parse(jsonString);
 			GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collApp);
 			
-			String username = input_json.get("username").toString();
+			int username = Integer.parseInt(input_json.get("username").toString());
 			String address = input_json.get("address").toString();
 			String handphone = input_json.get("handphone").toString();
 			String email = input_json.get("email").toString();
@@ -638,7 +638,81 @@ public class Supervisor {
 			
 			ObjectId.put("$set", ObjectSet);
 			
-			collStudent.update(ObjectId, ObjectQuery);
+			collSupervisor.update(ObjectId, ObjectQuery);
+			
+			output_json.put("code",1);
+			output_json.put("message","success");
+		} 
+		catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("message",e.toString());
+		}
+		
+		return output_json.toString();
+	}
+	
+	@POST
+	@Path("/edittask")
+	@SuppressWarnings("unchecked")
+	public String EditTask(String jsonString) 
+	{		
+		JSONObject output_json = new JSONObject();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			DBCollection collApp = db.getCollection("application");
+			DBCollection collStudent = db.getCollection("student");
+			
+			JSONObject input_json = (JSONObject) JSONValue.parse(jsonString);
+			GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collApp);
+			
+			int student = Integer.parseInt(input_json.get("student").toString());
+			int taskId = Integer.parseInt(input_json.get("id_task").toString());
+			String name	 = input_json.get("name").toString();
+			String desc = input_json.get("description").toString();
+			
+			DBObject objectFind	= new BasicDBObject("_id",student).append("task.id_task", taskId);
+			DBObject objectToSet= new BasicDBObject("task.$.name",name).append("task.$.desc",desc);
+			DBObject objectSet= new BasicDBObject("$set",objectToSet);
+			collStudent.update(objectFind, objectSet);
+			
+			output_json.put("code",1);
+			output_json.put("message","success");
+		} 
+		catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("message",e.toString());
+		}
+		
+		return output_json.toString();
+	}
+	
+	@POST
+	@Path("/deletetask")
+	@SuppressWarnings("unchecked")
+	public String DeleteTask(String jsonString) 
+	{		
+		JSONObject output_json = new JSONObject();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			DBCollection collApp = db.getCollection("application");
+			DBCollection collStudent = db.getCollection("student");
+			
+			JSONObject input_json = (JSONObject) JSONValue.parse(jsonString);
+			GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collApp);
+			
+			String student = input_json.get("student").toString();
+			int taskId = Integer.parseInt(input_json.get("id_task").toString());
+			
+			DBObject objectFind	= new BasicDBObject("_id",student);
+			DBObject objectToSet= new BasicDBObject("task",new BasicDBObject("id_task",taskId));
+			DBObject objectSet= new BasicDBObject("$pull",objectToSet);
+			collStudent.update(objectFind, objectSet);
 			
 			output_json.put("code",1);
 			output_json.put("message","success");
