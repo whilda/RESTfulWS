@@ -172,9 +172,9 @@ public class Student {
 	}
 	
 	@POST
-	@Path("/thesis")
+	@Path("/savethesis")
 	@SuppressWarnings("unchecked")
-	public String CreateThesis(String jsonString) 
+	public String SaveThesis(String jsonString) 
 	{		
 		JSONObject output_json = new JSONObject();
 		DB db = null;
@@ -187,29 +187,19 @@ public class Student {
 			JSONObject input_json = (JSONObject) JSONValue.parse(jsonString);
 			GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collApp);
 			
-			// Initiate Parameter
-			String topic = input_json.get("topic").toString();
-			String title = input_json.get("title").toString();
-			String description = input_json.get("description").toString();
-			String field = input_json.get("field").toString();
-			String username = input_json.get("username").toString();
+			int studentID = Integer.parseInt(input_json.get("student").toString());
 			
-			BasicDBObject ObjectId = new BasicDBObject();
-			ObjectId.put("_id",username);
-			
-			BasicDBObject ObjectSet = new BasicDBObject(); 
-			ObjectSet.put("thesis.topic",topic);
-			ObjectSet.put("thesis.title",title);
-			ObjectSet.put("thesis.description",description);
-			ObjectSet.put("thesis.field",(JSONArray) JSONValue.parse(field));
-			
-			BasicDBObject ObjectQuery = new BasicDBObject();
-			ObjectId.put("$set", ObjectSet);
-			
-			collStudent.updateMulti(ObjectId, ObjectQuery);
-			
-			output_json.put("code", 1);
-			output_json.put("message","Success");
+			DBObject query = new BasicDBObject("_id",studentID);
+			DBObject findOne = collStudent.findOne(query);
+			if(findOne != null){
+				AddToHistory(collStudent, query, findOne);
+				UpdateThesis(collStudent, input_json);
+				output_json.put("code", 1);
+				output_json.put("message","Success");
+			}else{
+				output_json.put("code", 0);
+				output_json.put("message","Parameter value was fault");
+			}
 		} 
 		catch (Exception e) 
 		{
@@ -218,6 +208,42 @@ public class Student {
 		}
 		
 		return output_json.toString();
+	}
+
+	private void AddToHistory(DBCollection collStudent, DBObject query,
+			DBObject findOne) {
+		JSONObject thesis = (JSONObject) JSONValue.parse(findOne.get("thesis").toString());
+		thesis.put("change_date", new Date());
+		
+		DBObject ObjectToBeSet = new BasicDBObject();
+		ObjectToBeSet.put("history",thesis);
+		
+		DBObject ObjectQuery = new BasicDBObject();
+		ObjectQuery.put("$push", ObjectToBeSet);
+		
+		collStudent.update(query, ObjectQuery);
+	}
+
+	private void UpdateThesis(DBCollection collStudent, JSONObject input_json) {
+		String topic = input_json.get("topic").toString();
+		String title = input_json.get("title").toString();
+		String description = input_json.get("description").toString();
+		String field = input_json.get("field").toString();
+		String username = input_json.get("username").toString();
+		
+		BasicDBObject ObjectId = new BasicDBObject();
+		ObjectId.put("_id",username);
+		
+		BasicDBObject ObjectSet = new BasicDBObject(); 
+		ObjectSet.put("thesis.topic",topic);
+		ObjectSet.put("thesis.title",title);
+		ObjectSet.put("thesis.description",description);
+		ObjectSet.put("thesis.field",(JSONArray) JSONValue.parse(field));
+		
+		BasicDBObject ObjectQuery = new BasicDBObject();
+		ObjectId.put("$set", ObjectSet);
+		
+		collStudent.updateMulti(ObjectId, ObjectQuery);
 	}
 	
 	@POST

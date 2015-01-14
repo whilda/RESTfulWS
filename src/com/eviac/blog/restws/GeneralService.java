@@ -117,6 +117,19 @@ public class GeneralService {
 		return tempKey;
 	}
     
+    public static String GetCommentID(DBCollection coll,String username,String task) {
+		JSONObject objectDB = null;
+		String tempKey = "";
+		do{
+			tempKey = RandomStringUtils.randomAlphanumeric(5);
+			objectDB = (JSONObject) coll.findOne(new BasicDBObject("_id",username)
+				.append("task.id_task", task)
+				.append("task.comment.id_comment", tempKey)
+				);
+		}while(objectDB == null);
+		return tempKey;
+	}
+    
     public static void saveFile(InputStream uploadedInputStream, String serverLocation) throws IOException{
         OutputStream outpuStream = new FileOutputStream(new File(
                 serverLocation));

@@ -301,6 +301,8 @@ public class Service {
 			DBObject findOne = collStudent.findOne(query);
 			if(findOne != null){
 				JSONObject commentObj1 = new JSONObject();
+				
+				commentObj1.put("id_comment", GeneralService.GetCommentID(collStudent, student, taskId));
 				commentObj1.put("by", by);
 				commentObj1.put("type", type);
 				commentObj1.put("text", text);
@@ -380,6 +382,142 @@ public class Service {
 			
 			output_json.put("code", 1);
 			output_json.put("message","success");
+		} 
+		catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("message",e.toString());
+		}
+		
+		return output_json.toString();
+	}
+	
+	@POST
+	@Path("/editcomment")
+	@SuppressWarnings("unchecked")
+	public String EditComment(String jsonString) 
+	{		
+		JSONObject output_json = new JSONObject();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			DBCollection collApp = db.getCollection("application");
+			DBCollection collStudent = db.getCollection("student");
+			
+			JSONObject input_json = (JSONObject) JSONValue.parse(jsonString);
+			GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collApp);
+			
+			int studentId = Integer.parseInt(input_json.get("student").toString());
+			int taskId = Integer.parseInt(input_json.get("id_task").toString());
+			int commentId = Integer.parseInt(input_json.get("id_comment").toString());
+			String type = input_json.get("type").toString();
+			String text = input_json.get("text").toString();
+			
+			DBObject query = new BasicDBObject("_id",studentId)
+				.append("task.id_task", taskId);
+			DBObject findOne = collStudent.findOne(query);
+			if(findOne != null){				
+				DBObject objectFind	= new BasicDBObject("_id",studentId)
+					.append("task.id_task", taskId)
+					.append("task.comment.id_comment", commentId);
+				DBCursor cursor = collStudent.find(objectFind);
+				DBObject student = cursor.next();
+				JSONArray tasks = (JSONArray) JSONValue.parse(student.get("task").toString());
+				JSONArray comments = GetComment(tasks,taskId);
+				int index = GetIndexComment(comments,commentId);
+				if(index != -1){
+					DBObject objectToSet= new BasicDBObject("task.$.comment."+index+".text",text)
+													.append("task.$.comment."+index+".type", type);
+					DBObject objectSet= new BasicDBObject("$set",objectToSet);
+					collStudent.update(objectFind, objectSet,false,true);
+				}else{
+					output_json.put("code", 0);
+					output_json.put("message","Parameter value was fault");
+				}
+				
+				output_json.put("code", 1);
+				output_json.put("message","success");
+			}else{
+				output_json.put("code", 0);
+				output_json.put("message","Parameter value was fault");
+			}
+		} 
+		catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("message",e.toString());
+		}
+		
+		return output_json.toString();
+	}
+	
+	private int GetIndexComment(JSONArray comment,int commentID) {
+		int i = 0;
+		Boolean find = false;
+		while(i<comment.size() && !find){
+			JSONObject task = (JSONObject) JSONValue.parse(comment.get(i).toString());
+			if(Integer.parseInt(task.get("id_comment").toString()) == commentID){
+				find = true;
+			}else
+				i++;
+		}
+		
+		if(i == comment.size()) i = -1;
+		return i;
+	}
+	
+	private JSONArray GetComment(JSONArray tasks,int taskID) {
+		JSONArray comments = null;
+		int i = 0;
+		Boolean find = false;
+		while(i<tasks.size() && !find){
+			JSONObject task = (JSONObject) JSONValue.parse(tasks.get(i).toString());
+			if(Integer.parseInt(task.get("id_task").toString()) == taskID){
+				find = true;
+				comments = (JSONArray) JSONValue.parse(task.get("comment").toString());
+			}else
+				i++;
+		}
+		return comments;
+	}
+	
+	@POST
+	@Path("/removecomment")
+	@SuppressWarnings("unchecked")
+	public String RemoveComment(String jsonString) 
+	{		
+		JSONObject output_json = new JSONObject();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			DBCollection collApp = db.getCollection("application");
+			DBCollection collStudent = db.getCollection("student");
+			
+			JSONObject input_json = (JSONObject) JSONValue.parse(jsonString);
+			GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collApp);
+			
+			int studentId = Integer.parseInt(input_json.get("student").toString());
+			int taskId = Integer.parseInt(input_json.get("id_task").toString());
+			int commentId = Integer.parseInt(input_json.get("id_comment").toString());
+			
+			DBObject query = new BasicDBObject("_id",studentId)
+				.append("task.id_task", taskId);
+			DBObject findOne = collStudent.findOne(query);
+			if(findOne != null){				
+				DBObject objectFind	= new BasicDBObject("_id",studentId)
+					.append("task.id_task", taskId);
+				DBObject objectToSet= new BasicDBObject("task.$.comment",new BasicDBObject("id_comment",commentId));
+				DBObject objectSet= new BasicDBObject("$pull",objectToSet);
+				collStudent.update(objectFind, objectSet);
+			
+				output_json.put("code", 1);
+				output_json.put("message","success");
+			}else{
+				output_json.put("code", 0);
+				output_json.put("message","Parameter value was fault");
+			}
 		} 
 		catch (Exception e) 
 		{
