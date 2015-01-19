@@ -80,7 +80,7 @@ public class Service {
 	}
 	
 	@POST
-	@Path("/login")
+	@Path("/auth")
 	@SuppressWarnings("unchecked")
 	public String funct_login (String jsonString)
 	{
