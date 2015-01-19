@@ -28,7 +28,10 @@ import connector.MONGODB;
 public class GeneralService {	
 // seko bima
 // iki seko janu
-	public static String adminContact = "admin@udinus.com";
+// seko aku la aku sopo
+
+	
+public static String adminContact = "admin@udinus.com";
 	
 	@POST
 	@Path("/app")
