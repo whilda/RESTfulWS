@@ -217,7 +217,7 @@ public class Supervisor {
 	@POST
 	@Path("/response")
 	@SuppressWarnings("unchecked")
-	public String Propose(String jsonString) 
+	public String response(String jsonString) 
 	{		
 		JSONObject output_json = new JSONObject();
 		DB db = null;
@@ -234,10 +234,14 @@ public class Supervisor {
 			// Initiate Parameter
 			String student = input_json.get("student").toString();
 			String supervisor = input_json.get("supervisor").toString();
-			String code= input_json.get("code").toString();
+			int code= Integer.parseInt(input_json.get("code").toString());
 			
-			UpdateProposeStudent(collStudent, student, supervisor, code);
-			UpdateProposeSupervisor(collSupervisor, student, supervisor);
+			if(code == 1){
+				UpdateProposeStudent(collStudent, student, supervisor);
+				UpdateProposeSupervisor(collSupervisor, student, supervisor);
+			}else{
+				RejectProposal(collStudent, collSupervisor, student, supervisor);
+			}
 				
 			output_json.put("code", 1);
 			output_json.put("message","success");
@@ -249,6 +253,26 @@ public class Supervisor {
 		}
 		
 		return output_json.toString();
+	}
+
+	private void RejectProposal(DBCollection collStudent,
+			DBCollection collSupervisor, String student, String supervisor) {
+		BasicDBObject ObjectId = new BasicDBObject();
+		BasicDBObject ObjectToBeRemove = new BasicDBObject();
+		BasicDBObject ObjectQueryRemove = new BasicDBObject();
+		BasicDBObject ObjectToBeSet = new BasicDBObject();
+		BasicDBObject ObjectQuerySet = new BasicDBObject();
+		
+		ObjectId.put("_id",supervisor);
+		ObjectToBeRemove.put("proposal",new BasicDBObject("username",student));
+		ObjectQueryRemove.put("$pull", ObjectToBeRemove);
+		collSupervisor.update(ObjectId, ObjectQueryRemove);
+		
+		ObjectId.put("_id",student);
+		ObjectToBeSet.put("status",Student.STATUS_IDDLE);
+		ObjectToBeSet.put("supervisor","");
+		ObjectQuerySet.put("$set", ObjectToBeSet);
+		collStudent.update(ObjectId, ObjectQuerySet);
 	}
 	
 	private void UpdateProposeSupervisor(DBCollection collSupervisor, String student, String supervisor) {
@@ -270,20 +294,13 @@ public class Supervisor {
 	}
 
 	private void UpdateProposeStudent(DBCollection collStudent, String student,
-			String supervisor, String code) {
+			String supervisor) {
 		BasicDBObject ObjectId = new BasicDBObject();
 		BasicDBObject ObjectSet = new BasicDBObject();
 		BasicDBObject ObjectQuery = new BasicDBObject();
 		
 		ObjectId.put("_id",student);
-		
-		if(code.equals("1")){
-			ObjectSet.put("status",1);
-		}else{
-			ObjectSet.put("status",0);
-			ObjectSet.put("supervisor","");
-		}
-		
+		ObjectSet.put("status",Student.STATUS_ASSIGN);
 		ObjectId.put("$set", ObjectSet);
 		
 		collStudent.updateMulti(ObjectId, ObjectQuery);
@@ -720,6 +737,149 @@ public class Supervisor {
 		catch (Exception e) 
 		{
 			output_json.put("code", -1);
+			output_json.put("message",e.toString());
+		}
+		
+		return output_json.toString();
+	}
+	
+	@POST
+	@Path("/claim")
+	@SuppressWarnings("unchecked")
+	public String Claim(String jsonString) 
+	{		
+		JSONObject output_json = new JSONObject();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			DBCollection collApp = db.getCollection("application");
+			DBCollection collStudent = db.getCollection("student");
+			DBCollection collSupervisor = db.getCollection("supervisor");
+			
+			JSONObject input_json = (JSONObject) JSONValue.parse(jsonString);
+			GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collApp);
+			
+			// Initiate Parameter
+			String student = input_json.get("student").toString();
+			String supervisor = input_json.get("supervisor").toString();
+			int status = Integer.parseInt(input_json.get("status").toString());
+			
+			if(status == 1){
+				UpdateGraduatedStudent(collStudent, collSupervisor, student,
+						supervisor);
+				UpdateGraduateSupervisor(collSupervisor, student, supervisor);
+			}else{
+				RejectGraduate(collStudent, collSupervisor, student, supervisor);
+			}
+					
+			output_json.put("code", 1);
+			output_json.put("message","success");
+		} 
+		catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("message",e.toString());
+		}
+		
+		return output_json.toString();
+	}
+
+	private void RejectGraduate(DBCollection collStudent,
+			DBCollection collSupervisor, String student, String supervisor) {
+		BasicDBObject ObjectId = new BasicDBObject();
+		BasicDBObject ObjectToBeRemove = new BasicDBObject();
+		BasicDBObject ObjectQueryRemove = new BasicDBObject();
+		BasicDBObject ObjectToBeSet = new BasicDBObject();
+		BasicDBObject ObjectQuerySet = new BasicDBObject();
+		
+		ObjectId.put("_id",supervisor);
+		ObjectToBeRemove.put("claim",new BasicDBObject("username",student));
+		ObjectQueryRemove.put("$pull", ObjectToBeRemove);
+		collSupervisor.update(ObjectId, ObjectQueryRemove);
+		
+		ObjectId.put("_id",student);
+		ObjectToBeSet.put("status",Student.STATUS_ACTIVE);
+		ObjectQuerySet.put("$set", ObjectToBeSet);
+		collStudent.update(ObjectId, ObjectQuerySet);
+	}
+
+	private void UpdateGraduateSupervisor(DBCollection collSupervisor,
+			String student, String supervisor) {
+		BasicDBObject ObjectId = new BasicDBObject();
+		BasicDBObject ObjectToBeRemove = new BasicDBObject();
+		BasicDBObject ObjectQueryRemove = new BasicDBObject();
+		BasicDBObject ObjectToBeSet = new BasicDBObject();
+		BasicDBObject ObjectQuerySet = new BasicDBObject();
+		
+		ObjectId.put("_id",supervisor);
+		
+		ObjectToBeRemove.put("claim",new BasicDBObject("username",student));
+		ObjectQueryRemove.put("$pull", ObjectToBeRemove);
+		
+		collSupervisor.update(ObjectId, ObjectQueryRemove);
+		
+		ObjectToBeSet.put("graduate",student);
+		ObjectQuerySet.put("$push", ObjectToBeSet);
+		collSupervisor.update(ObjectId, ObjectQuerySet);
+	}
+
+	private void UpdateGraduatedStudent(DBCollection collStudent,
+			DBCollection collSupervisor, String student, String supervisor) {
+		BasicDBObject ObjectId = new BasicDBObject();
+		BasicDBObject ObjectSet = new BasicDBObject();
+		BasicDBObject ObjectQuery = new BasicDBObject();
+		
+		ObjectId.put("_id",student);
+		
+		ObjectSet.put("status",Student.STATUS_GRADUATE);
+		DBCursor cursor = collSupervisor.find(new BasicDBObject("_id",supervisor).append("claim.username", student),
+				new BasicDBObject("_id",0).append("claim.$", 1));
+		DBObject obj = cursor.next();
+		JSONObject objf = (JSONObject) ((JSONArray) JSONValue.parse(obj.get("claim").toString())).get(0);
+			
+		ObjectSet.put("final.filename",objf.get("filename"));
+		ObjectSet.put("final.path",objf.get("path"));
+		ObjectSet.put("final.upload_date",objf.get("upload_date"));
+		ObjectSet.put("final.accept_date",new Date());					
+
+		ObjectId.put("$set", ObjectSet);
+
+		collStudent.updateMulti(ObjectId, ObjectQuery);
+	}
+	
+	@GET
+	@Path("/search/{key}/{appkey}")
+	@SuppressWarnings("unchecked")
+	public String Search(@PathParam("key") String key, @PathParam("appkey") String appkey) 
+	{		
+		JSONObject output_json = new JSONObject();
+		JSONArray output_data = new JSONArray();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			DBCollection collApp = db.getCollection("application");
+			DBCollection collSupervisor = db.getCollection("supervisor");
+			
+			GeneralService.AppkeyCheck(appkey,collApp);
+			JSONArray arr = new JSONArray();
+			arr.add(key);
+			
+			DBCursor cursor = collSupervisor.find(new BasicDBObject("field",new BasicDBObject("$in",arr)));
+			while (cursor.hasNext()) {
+			    DBObject currObj = cursor.next();
+			    JSONObject tempObj = (JSONObject) JSONValue.parse(currObj.toString());
+			    output_data.add(tempObj);
+			}
+			output_json.put("code", 1);
+			output_json.put("data", output_data);
+			output_json.put("message","Success");
+		} 
+		catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("data", new JSONArray());
 			output_json.put("message",e.toString());
 		}
 		

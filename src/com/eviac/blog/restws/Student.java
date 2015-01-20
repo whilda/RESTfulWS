@@ -31,7 +31,8 @@ public class Student {
 	public static int STATUS_PROPOSE = 0;
 	public static int STATUS_ASSIGN = 1;
 	public static int STATUS_ACTIVE = 2;
-	public static int STATUS_GRADUATE = 3;
+	public static int STATUS_CLAIM = 3;
+	public static int STATUS_GRADUATE = 4;
 	
 	@POST
 	@Path("/register")
@@ -74,7 +75,12 @@ public class Student {
 			objek_db.put("thesis.description", "");
 			objek_db.put("thesis.field", new JSONArray());
 			objek_db.put("task",new JSONArray());
+			objek_db.put("final.filename", "");
+			objek_db.put("final.url", "");
+			objek_db.put("final.upload_date", "");
+			objek_db.put("final.accept_date", "");
 			objek_db.put("activity",new JSONArray());
+			
 			
 			collStudent.insert(objek_db);
 			
@@ -359,7 +365,7 @@ public class Student {
 		ObjectId.put("_id",student);
 		
 		BasicDBObject ObjectSet = new BasicDBObject(); 
-		ObjectSet.put("status",0);
+		ObjectSet.put("status",STATUS_PROPOSE);
 		ObjectSet.put("supervisor",supervisor);
 		
 		BasicDBObject ObjectQuery = new BasicDBObject();
@@ -416,7 +422,6 @@ public class Student {
 					
 					BasicDBObject ObjectQuery = new BasicDBObject();
 					ObjectQuery.put("$set", new BasicDBObject("status",STATUS_ACTIVE));
-					
 					collStudent.update(new BasicDBObject("_id",student), ObjectQuery);
 					
 					output_json.put("code", 1);
@@ -440,10 +445,10 @@ public class Student {
 	}
 	
 	@POST
-	@Path("/creatework")
+	@Path("/claim")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@SuppressWarnings("unchecked")
-	public String CreateWork(FormDataMultiPart form) 
+	public String claim(FormDataMultiPart form) 
 	{		
 		JSONObject output_json = new JSONObject();
 		DB db = null;
@@ -452,6 +457,7 @@ public class Student {
 			db = MONGODB.GetMongoDB();
 			DBCollection collApp = db.getCollection("application");
 			DBCollection collStudent = db.getCollection("student");
+			DBCollection collSupervisor = db.getCollection("supervisor");
 			
 			String appKey = form.getField("appkey").toString();
 			GeneralService.AppkeyCheck(appKey,collApp);
@@ -460,16 +466,22 @@ public class Student {
 			FormDataBodyPart filePart = form.getField("file");
 			String username = form.getField("username").toString();
 			
-			ContentDisposition headerOfFilePart =  filePart.getContentDisposition();		 
-			InputStream fileInputStream = filePart.getValueAs(InputStream.class); 
-			String filePath = "./fileupload/"+username+"/"+ headerOfFilePart.getFileName(); 
-			GeneralService.saveFile(fileInputStream, filePath); 
-			
-			UpdateFinalFile(collStudent, username, headerOfFilePart, filePath);
-			ChangeStatus(collStudent, username);
-			
-			output_json.put("code", 1);
-			output_json.put("message","success");
+			DBObject studentObject = GeneralService.GetDBObjectFromId(collStudent, username);
+			if((int) studentObject.get("status") == STATUS_ACTIVE){
+				ContentDisposition headerOfFilePart =  filePart.getContentDisposition();		 
+				InputStream fileInputStream = filePart.getValueAs(InputStream.class); 
+				String filePath = "./finalwork/"+username+"/"+ headerOfFilePart.getFileName(); 
+				GeneralService.saveFile(fileInputStream, filePath); 
+				
+				UpdateFinalFile(collSupervisor, username, studentObject.get("supervisor").toString() ,headerOfFilePart, filePath);
+				ChangeStatus(collStudent, username);
+				
+				output_json.put("code", 1);
+				output_json.put("message","success");
+			}else{
+				output_json.put("code", 0);
+				output_json.put("message","Wrong status");
+			}
 		} 
 		catch (Exception e) 
 		{
@@ -485,7 +497,7 @@ public class Student {
 		ObjectId.put("_id",username);
 		
 		DBObject ObjectToBeSet = new BasicDBObject();
-		ObjectToBeSet.put("status",STATUS_GRADUATE);
+		ObjectToBeSet.put("status",STATUS_CLAIM);
 		
 		DBObject ObjectQuery = new BasicDBObject();
 		ObjectQuery.put("$set", ObjectToBeSet);
@@ -495,20 +507,21 @@ public class Student {
 
 	@SuppressWarnings("unchecked")
 	private void UpdateFinalFile(DBCollection collStudent, String username,
-			ContentDisposition headerOfFilePart, String filePath) {
+			String supervisor, ContentDisposition headerOfFilePart, String filePath) {
 		JSONObject fileObj = new JSONObject();
 		fileObj.put("filename", headerOfFilePart.getFileName());
-		fileObj.put("url", filePath);
+		fileObj.put("path", filePath);
 		fileObj.put("upload_date", new Date());
+		fileObj.put("username", username);
 		
 		DBObject ObjectId = new BasicDBObject();
-		ObjectId.put("_id",username);
+		ObjectId.put("_id",supervisor);
 		
 		DBObject ObjectToBeSet = new BasicDBObject();
-		ObjectToBeSet.put("final",fileObj);
+		ObjectToBeSet.put("claim",fileObj);
 		
 		DBObject ObjectQuery = new BasicDBObject();
-		ObjectQuery.put("$set", ObjectToBeSet);
+		ObjectQuery.put("$push", ObjectToBeSet);
 		
 		collStudent.update(ObjectId, ObjectQuery);
 	}
@@ -554,6 +567,86 @@ public class Student {
 		catch (Exception e) 
 		{
 			output_json.put("code", -1);
+			output_json.put("message",e.toString());
+		}
+		
+		return output_json.toString();
+	}
+	
+	@GET
+	@Path("/GetGraduated/{supervisor}/{appkey}")
+	@SuppressWarnings("unchecked")
+	public String GetGraduated(@PathParam("supervisor") String supervisor, @PathParam("appkey") String appkey) 
+	{		
+		JSONObject output_json = new JSONObject();
+		JSONArray output_data = new JSONArray();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			DBCollection collApp = db.getCollection("application");
+			DBCollection collStudent = db.getCollection("student");
+			DBCollection collSupervisor = db.getCollection("supervisor");
+			
+			GeneralService.AppkeyCheck(appkey,collApp);
+			
+			DBObject supervisorObj = GeneralService.GetDBObjectFromId(collSupervisor, supervisor);
+			JSONArray arr = (JSONArray) JSONValue.parse(supervisorObj.get("graduate").toString());
+			
+			DBCursor cursor = collStudent.find(new BasicDBObject("_id",new BasicDBObject("$in",arr)));
+			while (cursor.hasNext()) {
+			    DBObject currObj = cursor.next();
+			    JSONObject tempObj = (JSONObject) JSONValue.parse(currObj.toString());
+			    output_data.add(tempObj);
+			}
+			output_json.put("code", 1);
+			output_json.put("data", output_data);
+			output_json.put("message","Success");
+		} 
+		catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("data", new JSONArray());
+			output_json.put("message",e.toString());
+		}
+		
+		return output_json.toString();
+	}
+	
+	@GET
+	@Path("/GetUnGraduated/{supervisor}/{appkey}")
+	@SuppressWarnings("unchecked")
+	public String GetUnGraduated(@PathParam("supervisor") String supervisor, @PathParam("appkey") String appkey) 
+	{		
+		JSONObject output_json = new JSONObject();
+		JSONArray output_data = new JSONArray();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			DBCollection collApp = db.getCollection("application");
+			DBCollection collStudent = db.getCollection("student");
+			DBCollection collSupervisor = db.getCollection("supervisor");
+			
+			GeneralService.AppkeyCheck(appkey,collApp);
+			
+			DBObject supervisorObj = GeneralService.GetDBObjectFromId(collSupervisor, supervisor);
+			JSONArray arr = (JSONArray) JSONValue.parse(supervisorObj.get("student").toString());
+			
+			DBCursor cursor = collStudent.find(new BasicDBObject("_id",new BasicDBObject("$in",arr)));
+			while (cursor.hasNext()) {
+			    DBObject currObj = cursor.next();
+			    JSONObject tempObj = (JSONObject) JSONValue.parse(currObj.toString());
+			    output_data.add(tempObj);
+			}
+			output_json.put("code", 1);
+			output_json.put("data", output_data);
+			output_json.put("message","Success");
+		} 
+		catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("data", new JSONArray());
 			output_json.put("message",e.toString());
 		}
 		
