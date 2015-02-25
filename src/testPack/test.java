@@ -14,6 +14,10 @@ import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.pdfparser.PDFParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.util.PDFTextStripper;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+
+import service.CrawlClass;
 //import org.apache.lucene.analysis.Analyzer;
 //import org.apache.lucene.analysis.TokenStream;
 //import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -84,57 +88,15 @@ public class test {
 		return Document;
 	}
 	
-	public static void main( String [] args ) {
-		 
-        //File actual = new File("http://localhost/ta/fileTAFix/");
-		File actual = new File("C:/update/xampp/htdocs/ta/fileTAFix/");
-		String address = "C:/update/xampp/htdocs/ta/fileTAFix/";
-        for( File f : actual.listFiles())
-        {
-            PDFTextStripper pdfStripper = null;
-		    PDDocument pdDoc = null;
-		    COSDocument cosDoc = null;
-		    File file = new File(address+f.getName());
-		    try {
-		    	System.out.println("------------------------------------------------");
-		        PDFParser parser = new PDFParser(new FileInputStream(file));
-		        parser.parse();
-		        cosDoc = parser.getDocument();
-		        pdfStripper = new PDFTextStripper();
-		        pdDoc = new PDDocument(cosDoc);
-		        pdfStripper.setStartPage(1);
-		        pdfStripper.setEndPage(10);
-		        String parsedText = pdfStripper.getText(pdDoc);
-		        System.out.println("Awal : "+parsedText.length());
-		        parsedText = parsedText.toLowerCase();
-		        parsedText = parsedText.replace(",", "");
-//		        System.out.println(parsedText);
-		        parsedText = parsedText.replace(".","");
-		        parsedText = parsedText.replace("\t","");
-		        parsedText = parsedText.replace(System.getProperty("line.separator"), "");
-		        //parsedText = stopWord(parsedText);
-		        parsedText = sw2(parsedText);
-		        parsedText = parsedText.replace(",", "");
-		        parsedText = parsedText.replace(")", "");
-		        parsedText = parsedText.replace("(", "");
-		        parsedText = parsedText.replace("?", "");
-		        //parsedText = parsedText.replace(" ", "");
-		        parsedText = parsedText.replace(System.getProperty("line.separator"), "");
-		        System.out.println("Hasil StopWords : "+parsedText.length());
-		        System.out.println(parsedText);
-//		        
-		        //--String a = java.util.Arrays.toString(parsedText.split("\\ "));
-//		        parsedText = parsedText.replaceAll(",", "");
-//		        parsedText = parsedText.replaceAll("\\r\\n|\\r|\\n", "");
-//		        parsedText = parsedText.replaceAll(System.getProperty("line.separator"), "");
-//		        parsedText = parsedText.replaceAll(":", "");
-		        pdDoc.close();
-		    } catch (IOException e) {
-		        // TODO Auto-generated catch block
-		        e.printStackTrace();
-		        } 
-		    }
-        }
+	public static void main( String [] args ) throws IOException {
+		CrawlClass cw= new CrawlClass();
+		cw.crawl();
+//		String sem = cw.getUrl();
+//		JSONObject input_json =(JSONObject) JSONValue.parse(sem);
+//		sem = input_json.get("data").toString();
+//		input_json = (JSONObject) JSONValue.parse(sem);
+//		System.out.println(input_json.get("url").toString());
+    }
 /**
  * NIM,title,content,author,dateprocess,
  * funngsi plagiarisme pilihan mahasiswa
