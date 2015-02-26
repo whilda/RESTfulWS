@@ -1,0 +1,16 @@
+package main.fingerprintWinnowing;
+
+import java.math.BigInteger;
+import java.util.Set;
+
+/**
+ * Interface for similarity measures.
+ */
+public interface SimilarityMeasure extends java.io.Serializable {
+
+    /**
+     * Calculates similarity value between two sets. Each set is represented by
+     * array of strings. Arrays can have different length. 
+     */
+	public double similaritylist(Set<BigInteger> x, Set<BigInteger> y);
+}
