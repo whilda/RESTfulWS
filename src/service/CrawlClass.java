@@ -75,7 +75,7 @@ public class CrawlClass {
 			// Initiate Parameter
 			BasicDBObject objek_db = new BasicDBObject();
 			//objek_db.put("idurl", link);
-			objek_db.put("url", link);
+			objek_db.put("_id", link);
 			objek_db.put("status", 0);
 			objek_db.put("crawltime", new Date());
 			
@@ -115,7 +115,7 @@ public class CrawlClass {
 		try 
 		{
 			db = MONGODB.GetMongoDB();
-			DBCollection collCrawl = db.getCollection("tcrawler");
+			DBCollection collCrawl = db.getCollection("rawcrawler");
 			
 			BasicDBObject where_query = new BasicDBObject("status",0);
 			DBObject find_objek_crawl = collCrawl.findOne(where_query);

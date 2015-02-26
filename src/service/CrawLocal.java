@@ -4,15 +4,18 @@ import java.util.Date;
 
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 
 import main.preprocess;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 
 import connector.MONGODB;
@@ -25,7 +28,7 @@ public class CrawLocal {
 	@SuppressWarnings("unchecked")
 	public String GetUniqueProject()
 	{
-		//contoh list
+		//list examples from service /g/getlistthesis
 		String[] ListFiles = new String[] {"A11.2011.05929.pdf","A11.2011.05930.pdf","A11.2011.05931.pdf","A11.2011.05932.pdf","A11.2011.05933.pdf"};
 		ArrayList<String> UniqFile = new ArrayList<String>();
 		JSONObject output_json = new JSONObject();
@@ -114,7 +117,7 @@ public class CrawLocal {
 				objek_db.put("date", new Date());
 				StrPdf = ReadPdf.readOnePdf(FinalProjectPath+listString[i]);
 				objek_db.put("rawcontent",StrPdf);
-				objek_db.put("cleancontent",ReadPdf.StopWords(StrPdf));
+				objek_db.put("cleancontent","");//ReadPdf.StopWords(StrPdf)
 				objek_db.put("keyword","keyword "+listString[i]);
 				CollCrawl.insert(objek_db);
 				i++;
@@ -128,11 +131,98 @@ public class CrawLocal {
 		}
 		return output_json.toString();
 	}
+	// check a project has been add to local tabel
+	private boolean ProjectExist(DBCollection collLocal,String NameFile)
+	{
+		boolean uniq = false;
+		try 
+		{
+			BasicDBObject where_query = new BasicDBObject("_id",NameFile);
+			DBObject find_objek_project = collLocal.findOne(where_query);
+			if (find_objek_project != null)
+			{
+				uniq = true;
+			}
+		}catch (Exception e)
+		{
+			System.out.println(e);
+		}
+		return uniq;
+	}
+	//
+	@POST
+	@Path("/pbynamefile/{appkey}")
+	@SuppressWarnings("unchecked")
+	public String GetAllProjectByNameFile(@PathParam("appkey") String appkey)
+	{
+		JSONObject output_json = new JSONObject();
+		JSONArray data_json = new JSONArray();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			DBCollection collApp = db.getCollection("application");
+			DBCollection collLocal = db.getCollection("local");
+			
+			GeneralService.AppkeyCheck(appkey,collApp);
+			
+			DBCursor cursor = collLocal.find();
+			while (cursor.hasNext()) {
+				data_json.add(cursor.next().get("_id"));
+			}
+			
+			if (data_json.size() == 0)
+			{
+				output_json.put("code", 0);
+				output_json.put("message", "Not Found");
+				output_json.put("data", null);
+			}else
+			{
+				output_json.put("code", 1);
+				output_json.put("message", "Success");
+				output_json.put("data", data_json.toString());
+			}
+		} 
+		catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("message",e.toString());
+		}
+		
+		return output_json.toString();	
+	}
+	// check
+	@POST
+	@Path("/plagcheck")
+	@SuppressWarnings("unchecked")
 	public String PlagiarismCheck(String JsonInput)
 	{
-		input_json = (JSONObject) JSONValue.parse(list);
+		JSONObject output_json = new JSONObject();
+		
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			JSONObject input_json = (JSONObject) JSONValue.parse(JsonInput);
+			DBCollection collApp = db.getCollection("application");
+			DBCollection collLocal = db.getCollection("local");
+			GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collApp);
+			if(!this.ProjectExist(collLocal, input_json.get("NameFile").toString()))
+			{
+				output_json.put("code", 2);
+				output_json.put("message", "Tugas Akhir belum Anda Upload");
+			}
+			else
+			{
+				//
+			}
+		}catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("message", e.toString());
+		}
+		return output_json.toString();
 	}
-	
 }
 /**
 	db.local.insert({"_id":"A11.2011.05929.pdf","judul":"crawling berbasisi ontology","rawcontent":"wkwkkwkwkwkwkwkkwkwkwkkkwkwkwkwkwkkw kwkwkwkwkwk wkwk kwkwkwkwk wkkw kwwkwkk wkkwkwkwkwkwk"})
