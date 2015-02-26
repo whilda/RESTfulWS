@@ -55,19 +55,6 @@ public class CrawlClass {
 	{
 		return false;
 	}
-	public int getNextSequenceValue(String sequenceName){
-		DB db = null;
-		try{
-			db = MONGODB.GetMongoDB();
-			//DBCollection CollCount = 
-					db.getCollection("counters");
-			
-			//CollCount.findAndModify(query, update)
-		}catch (Exception e){
-			
-		}
-	   return 1;
-	}
 	// add url into database
 	@POST
 	@Path("/addurltocrawl")
@@ -203,9 +190,10 @@ try
 {
 	db = MONGODB.GetMongoDB();
 	DBCollection collCrawl = db.getCollection("tcrawler");
-}		catch (Exception e) 
-		{
-			output_json.put("code", -1);
-			output_json.put("message", e.toString());
-		}
+}catch (Exception e) 
+{
+	output_json.put("code", -1);
+	output_json.put("message", e.toString());
+}
+return output_json.toString();
 	**/

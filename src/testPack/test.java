@@ -1,8 +1,13 @@
 package testPack;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 //import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,12 +15,18 @@ import java.util.HashSet;
 //import java.util.List;
 import java.util.Set;
 
+import javafx.scene.web.WebView;
+import main.preprocess;
+
 import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.pdfparser.PDFParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.util.PDFTextStripper;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
 import service.CrawlClass;
 //import org.apache.lucene.analysis.Analyzer;
@@ -43,29 +54,6 @@ public class test {
 //		CharArraySet b = a.getStopwordSet();
 //		System.out.println(b);
 //	}
-	public static String sw2(String Document)
-	{
-		Document = "1. Penetapan kebijakan operasional pendidikan di kabupaten sesuai dengan kebijakan nasional dan provinsi. a. Penyusunan, penetapan dan pelaksanaan kalender pendidikan TK, SD, SLTP, SMU, SMK dan PLS di daerah masing-masing sesuai dengan kondisi, budaya dan ketentuan jam belajar afektif. b. Penyusunan, penetapan dan pelaksanaan kalender pendidikan TK, SD, SLTP, SMU, SMK dan PLS di daerah masing-masing sesuai dengan kondisi, budaya dan ketentuan jam belajar afektif.  c. Penetapan petunjuk pelaksanaan dan pemberian dukungan peran serta masyarakat di bidang pendidikan.  d. Perencanaan dan penetapan pendirian dan penutupan TK, SD, SLTP, SMU dan PLS e. Pelaksanaan penerimaan dan perpindahan peserta didik TK, SD, SLTP, SMU, SMK dan PLS f. Pelaksanaan sertifikasi tenaga ahli/profesional bidang pendidikan. g. Pelaksanaan kerjasama dalam dan luar sekolah. 2. Perencanaan operasional program pendidikan anak usia dini, pendidikan dasar, pendidikan menengah dan pendidikan nonformal sesuai dengan perencanaan strategis tingkat provinsi dan nasional. 3. Sosialisasi dan pelaksanaan standar nasional pendidikan di tingkat kabupaten. 4. Pengelolaan dan penyelenggaraan pendidikan anak usia dini, pendidikan dasar, pendidikan menengah dan pendidikan nonformal.  5. Pemberian izin pendirian serta pencabutan izin satuan pendidikan dasar, satuan pendidikan menengah dan satuan/penyelenggara pendidikan nonformal. 6. Penyelenggaraan dan/atau pengelolaan satuan pendidikan sekolah dasar bertaraf internasional. 7. Pemberian izin pendirian serta pencabutan izin satuan pendidikan anak usia dini, pendidikan dasar dan menengah berbasis keunggulan lokal.  8. Penyelenggaraan dan/atau pengelolaan pendidikan berbasis keunggulan lokal pada pendidikan dasar dan menengah. 9. Pemberian dukungan sumber daya terhadap penyelenggaraan perguruan tinggi. 10. Pemantauan dan evaluasi satuan pendidikan sekolah dasar bertaraf internasional. 11. Peremajaan data dalam sistem infomasi manajemen  pendidikan nasional untuk tingkat kabupaten.  12. Pengembangan kemitraan pengelolaan pendidikan. ";
-	    String[] words = Document.split(" ");
-	    ArrayList<String> wordsList = new ArrayList<String>();
-	    Set<String> stopWordsSet = new HashSet<String>();
-	    int i,len = sw.length;
-	    for(i=0;i<len;i++)
-		{
-	    	stopWordsSet.add(sw[i]);
-		}
-
-	    for(String word : words)
-	    {
-	        String wordCompare = word;
-	        //System.out.println(wordCompare);
-	        if(!stopWordsSet.contains(wordCompare))
-	        {
-	            wordsList.add(word);
-	        }
-	    }
-	    return wordsList.toString();
-	}
 	public static String stopWord(String Document)
 	{
 		//Document = "karena algoritma begitu berharga untuk masih berperan sangat penting dan yang lainnya";
@@ -89,13 +77,37 @@ public class test {
 	}
 	
 	public static void main( String [] args ) throws IOException {
-		CrawlClass cw= new CrawlClass();
-		cw.crawl();
+//		CrawlClass cw= new CrawlClass();
+//		cw.crawl();
 //		String sem = cw.getUrl();
 //		JSONObject input_json =(JSONObject) JSONValue.parse(sem);
 //		sem = input_json.get("data").toString();
 //		input_json = (JSONObject) JSONValue.parse(sem);
 //		System.out.println(input_json.get("url").toString());
+		
+//		CrawlClass a = new CrawlClass();
+//		System.out.println(a.getPage("http://localhost/ta/A11.2011.05929.pdf"));
+		
+//		preprocess a = new preprocess();
+//		System.out.println(a.readOnePdf("http://localhost/ta/A11.2011.05929.pdf"));
+		URL url;
+		try {
+		        url = new URL("http://localhost/ta/A11.2011.05929.pdf");
+		    InputStream inputStream = url.openConnection().getInputStream();
+		    BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
+		    String inputLine;
+		    ArrayList<String> UniqFile = new ArrayList<String>();
+		 
+		    while ((inputLine = in.readLine()) != null) {
+		        //System.out.println(inputLine);
+		        UniqFile.add(inputLine);
+		    }
+		    System.out.println(UniqFile.toString());
+		    in.close();
+		 
+		} catch (IOException e) {
+		    e.printStackTrace();
+		}
     }
 /**
  * NIM,title,content,author,dateprocess,

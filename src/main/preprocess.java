@@ -36,7 +36,7 @@ public class preprocess {
 	    }
 	    return wordsList.toString();
 	}
-	public String readPDF(String PdfPath)
+	public String readAllPDF(String PdfPath)
 	{
 		File actual = new File(PdfPath);
 		String address = PdfPath;
@@ -63,6 +63,30 @@ public class preprocess {
 		        e.printStackTrace();
 		        } 
 		    }
+		return parsedText;
+	}
+	// read pdfpath and return in string type
+	public String readOnePdf(String PdfPath)
+	{
+		String parsedText = null;
+        PDFTextStripper pdfStripper = null;
+	    PDDocument pdDoc = null;
+	    COSDocument cosDoc = null;
+	    File file = new File(PdfPath);
+	    try {
+	        PDFParser parser = new PDFParser(new FileInputStream(file));
+	        parser.parse();
+	        cosDoc = parser.getDocument();
+	        pdfStripper = new PDFTextStripper();
+	        pdDoc = new PDDocument(cosDoc);
+	        pdfStripper.setStartPage(1);
+	        pdfStripper.setEndPage(5);
+	        parsedText = pdfStripper.getText(pdDoc);
+	        pdDoc.close();
+	    } catch (IOException e) {
+	        // TODO Auto-generated catch block
+	        e.printStackTrace();
+	    } 
 		return parsedText;
 	}
 	/**
