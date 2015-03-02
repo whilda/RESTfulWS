@@ -1,5 +1,9 @@
 package service;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.Date;
 
 import org.jsoup.Jsoup;
@@ -10,6 +14,7 @@ import org.jsoup.select.Elements;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -51,9 +56,30 @@ public class CrawlClass {
 	{
 		return false;
 	}
-	public boolean IsPdf(String PageHtml)
+	@POST
+	@Path("/ispdf/{appkey}")
+	@SuppressWarnings("unchecked")
+	public String IsPdf(@PathParam("appkey") String appkey,String JsonInput)
 	{
-		return false;
+		JSONObject output_json = new JSONObject();
+		try {
+			JSONObject input_json = (JSONObject) JSONValue.parse(JsonInput);
+			URL url = new URL(input_json.get("url").toString()); 
+		    InputStream inputStream = url.openConnection().getInputStream();
+		    BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
+		    String inputLine;
+		    inputLine = in.readLine();
+		    System.out.println(inputLine);
+		    if(inputLine.contains("%PDF")){
+		    	output_json.put("code", "1");
+		    	output_json.put("message", "This URL is PDF");
+		    }
+		    in.close();
+		} catch (IOException e) {
+		    output_json.put("code", -1);
+	    	output_json.put("message", e.toString());
+		}
+		return output_json.toString();
 	}
 	// add url into database
 	@POST

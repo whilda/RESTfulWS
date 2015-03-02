@@ -55,7 +55,7 @@ public class preprocess {
 		        pdfStripper = new PDFTextStripper();
 		        pdDoc = new PDDocument(cosDoc);
 		        pdfStripper.setStartPage(1);
-		        //pdfStripper.setEndPage(10);
+		        pdfStripper.setEndPage(150);
 		        parsedText = pdfStripper.getText(pdDoc);
 		        pdDoc.close();
 		    } catch (IOException e) {
@@ -80,7 +80,7 @@ public class preprocess {
 	        pdfStripper = new PDFTextStripper();
 	        pdDoc = new PDDocument(cosDoc);
 	        pdfStripper.setStartPage(1);
-	        pdfStripper.setEndPage(5);
+	        pdfStripper.setEndPage(150);
 	        parsedText = pdfStripper.getText(pdDoc);
 	        pdDoc.close();
 	    } catch (IOException e) {

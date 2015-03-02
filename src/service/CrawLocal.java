@@ -1,12 +1,21 @@
 package service;
+import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
 import main.preprocess;
+import main.fingerprintWinnowing.FilterTransform;
+import main.fingerprintWinnowing.JaccardCoefficient;
+import main.fingerprintWinnowing.WinnowingFingerprinter;
+import main.fingerprintWinnowing.WinnowingTextTransformer;
+import main.fingerprintWinnowing.WinnowingWhitespaceFilter;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -26,10 +35,10 @@ public class CrawLocal {
 	@POST
 	@Path("/getuniq")
 	@SuppressWarnings("unchecked")
-	public String GetUniqueProject()
+	public String GetUniqueProject() // google docs (v)
 	{
 		//list examples from service /g/getlistthesis
-		String[] ListFiles = new String[] {"A11.2011.05929.pdf","A11.2011.05930.pdf","A11.2011.05931.pdf","A11.2011.05932.pdf","A11.2011.05933.pdf"};
+		String[] ListFiles = new String[] {"A11.2011.05929.pdf","A11.2011.05930.pdf","A11.2011.05931.pdf","A11.2011.05932.pdf","A11.2011.05900.pdf"};
 		ArrayList<String> UniqFile = new ArrayList<String>();
 		JSONObject output_json = new JSONObject();
 		try 
@@ -86,7 +95,7 @@ public class CrawLocal {
 	@POST
 	@Path("/preprocess")
 	@SuppressWarnings("unchecked")
-	public String PreProcessList()
+	public String PreProcessList() // google docs (v)
 	{
 		JSONObject output_json = new JSONObject();
 		JSONObject input_json = new JSONObject();
@@ -153,7 +162,7 @@ public class CrawLocal {
 	@POST
 	@Path("/pbynamefile/{appkey}")
 	@SuppressWarnings("unchecked")
-	public String GetAllProjectByNameFile(@PathParam("appkey") String appkey)
+	public String GetAllProjectByNameFile(@PathParam("appkey") String appkey) // google docs (v)
 	{
 		JSONObject output_json = new JSONObject();
 		JSONArray data_json = new JSONArray();
@@ -161,12 +170,47 @@ public class CrawLocal {
 		try 
 		{
 			db = MONGODB.GetMongoDB();
-			DBCollection collApp = db.getCollection("application");
 			DBCollection collLocal = db.getCollection("local");
-			
-			GeneralService.AppkeyCheck(appkey,collApp);
-			
 			DBCursor cursor = collLocal.find();
+			while (cursor.hasNext()) {
+				data_json.add(cursor.next().get("_id"));
+			}
+			
+			if (data_json.size() == 0)
+			{
+				output_json.put("code", 0);
+				output_json.put("message", "Not Found");
+				output_json.put("data", null);
+			}else
+			{
+				output_json.put("code", 1);
+				output_json.put("message", "Success");
+				output_json.put("data", data_json.toString());
+			}
+		} 
+		catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("message",e.toString());
+		}
+		
+		return output_json.toString();	
+	}
+	@SuppressWarnings("unchecked")
+	public String GetAllProjectByNameFileExcept(String NameFile)
+	{
+		JSONObject output_json = new JSONObject();
+		JSONArray data_json = new JSONArray();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			DBCollection collLocal = db.getCollection("local");
+			BasicDBObject objek_db = new BasicDBObject();
+			BasicDBObject objek_db2 = new BasicDBObject();
+			objek_db.put("$ne", NameFile);
+			objek_db2.put("_id",objek_db);
+			DBCursor cursor = collLocal.find(objek_db2);
 			while (cursor.hasNext()) {
 				data_json.add(cursor.next().get("_id"));
 			}
@@ -195,11 +239,17 @@ public class CrawLocal {
 	@POST
 	@Path("/plagcheck")
 	@SuppressWarnings("unchecked")
-	public String PlagiarismCheck(String JsonInput)
+	public String PlagiarismCheck(String JsonInput)// google docs (v)|{"appkey":"4YjFrLIY5amwajVOKfZH","NameFile":"A11.2011.05929.pdf"}
 	{
 		JSONObject output_json = new JSONObject();
-		
+		String[] listString = null;
 		DB db = null;
+		
+		JSONObject ResEnemy;
+		String dataEnemy;
+		JSONObject EnemyJson;
+		String EnemyRawContent=null;
+		
 		try 
 		{
 			db = MONGODB.GetMongoDB();
@@ -207,16 +257,140 @@ public class CrawLocal {
 			DBCollection collApp = db.getCollection("application");
 			DBCollection collLocal = db.getCollection("local");
 			GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collApp);
-			if(!this.ProjectExist(collLocal, input_json.get("NameFile").toString()))
+			String NameFile = input_json.get("NameFile").toString();
+			if(!this.ProjectExist(collLocal, NameFile))
 			{
 				output_json.put("code", 2);
 				output_json.put("message", "Tugas Akhir belum Anda Upload");
 			}
 			else
 			{
+				//get data by namefile(_id)
+				JSONObject Res = (JSONObject) JSONValue.parse(this.PriGetProjectBy_id(NameFile));
+				String Data = Res.get("data").toString();
+				JSONObject DataTarget = (JSONObject) JSONValue.parse(Data);
+				String RawContent = DataTarget.get("rawcontent").toString();
 				//
+				//
+				String list = this.GetAllProjectByNameFileExcept(NameFile);
+				// get NameFile except target from local table
+				JSONObject FileData = (JSONObject) JSONValue.parse(list);
+				list = FileData.get("data").toString();
+				list = list.replace("[","");
+				list = list.replace("]","");
+				list = list.replace(" ","");
+				listString = list.split(",");
+				int i=0,count = listString.length;
+				// end
+				// prepare check plagiarism
+				while(i<count)
+				{
+					ResEnemy = (JSONObject) JSONValue.parse(this.PriGetProjectBy_id("A11.2011.05930.pdf"));
+					dataEnemy = ResEnemy.get("data").toString();
+					EnemyJson = (JSONObject) JSONValue.parse(dataEnemy);
+					EnemyRawContent = EnemyJson.get("rawcontent").toString();
+					Set<BigInteger> fpTarget=null, fpEnemy=null;
+					FilterTransform ft=new FilterTransform();
+					List<WinnowingWhitespaceFilter> ws=new ArrayList<WinnowingWhitespaceFilter>(1);
+					List<WinnowingTextTransformer> wt=new ArrayList<WinnowingTextTransformer>(1);
+					wt.add(ft);
+					ws.add(ft);
+					WinnowingFingerprinter WN = new WinnowingFingerprinter(ws, wt, 8, 12, "MD5");
+					try {
+						fpTarget = WN.fingerprint(RawContent);
+						fpEnemy = WN.fingerprint(EnemyRawContent);
+					} catch (NoSuchAlgorithmException e) {
+						e.printStackTrace();		
+					}
+					JaccardCoefficient JC = new JaccardCoefficient();
+					output_json.put("data"+i, JC.similaritylist(fpTarget, fpEnemy));
+					i++;
+				}
+				output_json.put("code",1);
 			}
 		}catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("message", e.toString());
+		}
+		return output_json.toString();
+	}
+	@SuppressWarnings("unchecked")
+	public String UpdateLocal(String NameFile)//rung bar bim
+	{
+		JSONObject output_json = new JSONObject();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			BasicDBObject Target = new BasicDBObject();
+			BasicDBObject SetUpdate = new BasicDBObject();
+			Target.put("_id",NameFile);
+			
+			SetUpdate.put("rawcontent", "");
+			SetUpdate.put("date", new Date());
+			DBCollection collCrawl = db.getCollection("local");
+		}catch (Exception e) 
+		{
+			output_json.put("code", -1);
+			output_json.put("message", e.toString());
+		}
+		return output_json.toString();
+	}
+	@POST
+	@Path("/getpby_id")
+	@SuppressWarnings("unchecked")
+	public String GetProjectBy_id(String JsonInput)
+	{
+		JSONObject output_json = new JSONObject();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			JSONObject input_json = (JSONObject) JSONValue.parse(JsonInput);
+			DBCollection collApp = db.getCollection("application");
+			GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collApp);
+			DBCollection collLocal = db.getCollection("local");
+			BasicDBObject where_query = new BasicDBObject("_id",input_json.get("NameFile").toString());
+			DBObject find_objek_project = collLocal.findOne(where_query);
+			if (find_objek_project != null)
+			{
+				output_json.put("code", 1);
+				output_json.put("data", find_objek_project);
+			}
+			else
+			{
+				output_json.put("code", 2);
+				output_json.put("message", "Project not found");
+			}
+		}catch (Exception e)
+		{
+			output_json.put("code", -1);
+			output_json.put("message", e.toString());
+		}
+		return output_json.toString();
+	}
+	@SuppressWarnings("unchecked")
+	private String PriGetProjectBy_id(String NameFile)
+	{
+		JSONObject output_json = new JSONObject();
+		DB db = null;
+		try 
+		{
+			db = MONGODB.GetMongoDB();
+			DBCollection collLocal = db.getCollection("local");
+			BasicDBObject where_query = new BasicDBObject("_id",NameFile);
+			DBObject find_objek_project = collLocal.findOne(where_query);
+			if (find_objek_project != null)
+			{
+				output_json.put("data", find_objek_project);
+			}
+			else
+			{
+				output_json.put("code", 2);
+				output_json.put("message", "Project not found");
+			}
+		}catch (Exception e)
 		{
 			output_json.put("code", -1);
 			output_json.put("message", e.toString());
@@ -226,4 +400,10 @@ public class CrawLocal {
 }
 /**
 	db.local.insert({"_id":"A11.2011.05929.pdf","judul":"crawling berbasisi ontology","rawcontent":"wkwkkwkwkwkwkwkkwkwkwkkkwkwkwkwkwkkw kwkwkwkwkwk wkwk kwkwkwkwk wkkw kwwkwkk wkkwkwkwkwkwk"})
+	
+	alur :
+	mahasiswa upload final project
+	PreProcessing dipanggil berkala (baca pdf difolder final->insert ke local tabel)
+	
+	
 **/

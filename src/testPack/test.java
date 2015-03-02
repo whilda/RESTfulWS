@@ -1,13 +1,21 @@
 package testPack;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
+import java.nio.file.Path;
 //import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -90,24 +98,21 @@ public class test {
 		
 //		preprocess a = new preprocess();
 //		System.out.println(a.readOnePdf("http://localhost/ta/A11.2011.05929.pdf"));
-		URL url;
-		try {
-		        url = new URL("http://localhost/ta/A11.2011.05929.pdf");
-		    InputStream inputStream = url.openConnection().getInputStream();
-		    BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
-		    String inputLine;
-		    ArrayList<String> UniqFile = new ArrayList<String>();
-		 
-		    while ((inputLine = in.readLine()) != null) {
-		        //System.out.println(inputLine);
-		        UniqFile.add(inputLine);
-		    }
-		    System.out.println(UniqFile.toString());
-		    in.close();
-		 
-		} catch (IOException e) {
-		    e.printStackTrace();
-		}
+		////////
+		URL url;// masih gagal bung:D
+		url = new URL("http://localhost/ta/A11.2011.05929.pdf");
+		InputStream inputStream = url.openConnection().getInputStream();
+		BufferedInputStream fin = new BufferedInputStream(inputStream);
+	    BufferedOutputStream fout = new BufferedOutputStream(new FileOutputStream("C:/update/xampp/htdocs/ta/newpdf.pdf"));
+	    int i;
+	    do {
+	      i = fin.read();
+	      if (i != -1)
+	        fout.write(i);
+	    } while (i != -1);
+	    fin.close();
+	    fout.close();
+	  
     }
 /**
  * NIM,title,content,author,dateprocess,
