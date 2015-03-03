@@ -17,7 +17,6 @@ import main.fingerprintWinnowing.WinnowingFingerprinter;
 import main.fingerprintWinnowing.WinnowingTextTransformer;
 import main.fingerprintWinnowing.WinnowingWhitespaceFilter;
 
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -165,7 +164,7 @@ public class CrawLocal {
 	public String GetAllProjectByNameFile(@PathParam("appkey") String appkey) // google docs (v)
 	{
 		JSONObject output_json = new JSONObject();
-		JSONArray data_json = new JSONArray();
+		ArrayList<String> List = new ArrayList<String>();
 		DB db = null;
 		try 
 		{
@@ -173,10 +172,10 @@ public class CrawLocal {
 			DBCollection collLocal = db.getCollection("local");
 			DBCursor cursor = collLocal.find();
 			while (cursor.hasNext()) {
-				data_json.add(cursor.next().get("_id"));
+				List.add(cursor.next().get("_id").toString());
 			}
 			
-			if (data_json.size() == 0)
+			if (List.size() == 0)
 			{
 				output_json.put("code", 0);
 				output_json.put("message", "Not Found");
@@ -185,7 +184,7 @@ public class CrawLocal {
 			{
 				output_json.put("code", 1);
 				output_json.put("message", "Success");
-				output_json.put("data", data_json.toString());
+				output_json.put("data", List);
 			}
 		} 
 		catch (Exception e) 
@@ -197,10 +196,10 @@ public class CrawLocal {
 		return output_json.toString();	
 	}
 	@SuppressWarnings("unchecked")
-	public String GetAllProjectByNameFileExcept(String NameFile)
+	private String GetAllProjectByNameFileExcept(String NameFile)
 	{
 		JSONObject output_json = new JSONObject();
-		JSONArray data_json = new JSONArray();
+		ArrayList<String> List = new ArrayList<String>();
 		DB db = null;
 		try 
 		{
@@ -212,19 +211,7 @@ public class CrawLocal {
 			objek_db2.put("_id",objek_db);
 			DBCursor cursor = collLocal.find(objek_db2);
 			while (cursor.hasNext()) {
-				data_json.add(cursor.next().get("_id"));
-			}
-			
-			if (data_json.size() == 0)
-			{
-				output_json.put("code", 0);
-				output_json.put("message", "Not Found");
-				output_json.put("data", null);
-			}else
-			{
-				output_json.put("code", 1);
-				output_json.put("message", "Success");
-				output_json.put("data", data_json.toString());
+				List.add(cursor.next().get("_id").toString());
 			}
 		} 
 		catch (Exception e) 
@@ -232,8 +219,8 @@ public class CrawLocal {
 			output_json.put("code", -1);
 			output_json.put("message",e.toString());
 		}
-		
-		return output_json.toString();	
+		if (List.size() == 0){return "0";}
+		else{return List.toString();}	
 	}
 	// check
 	@POST
@@ -242,21 +229,21 @@ public class CrawLocal {
 	public String PlagiarismCheck(String JsonInput)// google docs (v)|{"appkey":"4YjFrLIY5amwajVOKfZH","NameFile":"A11.2011.05929.pdf"}
 	{
 		JSONObject output_json = new JSONObject();
-		String[] listString = null;
 		DB db = null;
 		
 		JSONObject ResEnemy;
 		String dataEnemy;
 		JSONObject EnemyJson;
 		String EnemyRawContent=null;
-		
 		try 
 		{
 			db = MONGODB.GetMongoDB();
 			JSONObject input_json = (JSONObject) JSONValue.parse(JsonInput);
 			DBCollection collApp = db.getCollection("application");
-			DBCollection collLocal = db.getCollection("local");
 			GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collApp);
+			DBCollection collLocal = db.getCollection("local");
+			DBCollection collCheckPlag = db.getCollection("checkplagiarism");
+			BasicDBObject newField = new BasicDBObject();
 			String NameFile = input_json.get("NameFile").toString();
 			if(!this.ProjectExist(collLocal, NameFile))
 			{
@@ -274,62 +261,53 @@ public class CrawLocal {
 				//
 				String list = this.GetAllProjectByNameFileExcept(NameFile);
 				// get NameFile except target from local table
-				JSONObject FileData = (JSONObject) JSONValue.parse(list);
-				list = FileData.get("data").toString();
-				list = list.replace("[","");
-				list = list.replace("]","");
-				list = list.replace(" ","");
-				listString = list.split(",");
-				int i=0,count = listString.length;
-				// end
-				// prepare check plagiarism
-				while(i<count)
+				if(list!="0")
 				{
-					ResEnemy = (JSONObject) JSONValue.parse(this.PriGetProjectBy_id("A11.2011.05930.pdf"));
-					dataEnemy = ResEnemy.get("data").toString();
-					EnemyJson = (JSONObject) JSONValue.parse(dataEnemy);
-					EnemyRawContent = EnemyJson.get("rawcontent").toString();
-					Set<BigInteger> fpTarget=null, fpEnemy=null;
-					FilterTransform ft=new FilterTransform();
-					List<WinnowingWhitespaceFilter> ws=new ArrayList<WinnowingWhitespaceFilter>(1);
-					List<WinnowingTextTransformer> wt=new ArrayList<WinnowingTextTransformer>(1);
-					wt.add(ft);
-					ws.add(ft);
-					WinnowingFingerprinter WN = new WinnowingFingerprinter(ws, wt, 8, 12, "MD5");
-					try {
-						fpTarget = WN.fingerprint(RawContent);
-						fpEnemy = WN.fingerprint(EnemyRawContent);
-					} catch (NoSuchAlgorithmException e) {
-						e.printStackTrace();		
+					list = list.replace("[","");list = list.replace("]","");list = list.replace(" ","");
+					String[] listString = list.split(",");
+					List<DBObject> documents = new ArrayList<>();
+					int i=0,count = listString.length;
+					// end
+					// prepare check plagiarism
+					while(i<count)
+					{
+						BasicDBObject compare = new BasicDBObject();
+						ResEnemy = (JSONObject) JSONValue.parse(this.PriGetProjectBy_id(listString[i]));
+						dataEnemy = ResEnemy.get("data").toString();
+						EnemyJson = (JSONObject) JSONValue.parse(dataEnemy);
+						EnemyRawContent = EnemyJson.get("rawcontent").toString();
+						Set<BigInteger> fpTarget=null, fpEnemy=null;
+						FilterTransform ft=new FilterTransform();
+						List<WinnowingWhitespaceFilter> ws=new ArrayList<WinnowingWhitespaceFilter>(1);
+						List<WinnowingTextTransformer> wt=new ArrayList<WinnowingTextTransformer>(1);
+						wt.add(ft);
+						ws.add(ft);
+						WinnowingFingerprinter WN = new WinnowingFingerprinter(ws, wt, 8, 12, "MD5");
+						try {
+							fpTarget = WN.fingerprint(RawContent);
+							fpEnemy = WN.fingerprint(EnemyRawContent);
+						} catch (NoSuchAlgorithmException e) {
+							e.printStackTrace();		
+						}
+						JaccardCoefficient JC = new JaccardCoefficient();
+						compare.put("nim", listString[i]);
+						compare.put("similarity", JC.similaritylist(fpTarget, fpEnemy));
+						documents.add(compare);
+						i++;
 					}
-					JaccardCoefficient JC = new JaccardCoefficient();
-					output_json.put("data"+i, JC.similaritylist(fpTarget, fpEnemy));
-					i++;
+					newField.put("_id",NameFile);
+					newField.put("plagdetails",documents.toString());
+					newField.put("date", new Date());
+					collCheckPlag.insert(newField);
+					
+					output_json.put("code",1);
+					output_json.put("message","check plagiarism sucess");
+				}else
+				{
+					output_json.put("code",2);
+					output_json.put("message","Plagiarism Check Failed");
 				}
-				output_json.put("code",1);
 			}
-		}catch (Exception e) 
-		{
-			output_json.put("code", -1);
-			output_json.put("message", e.toString());
-		}
-		return output_json.toString();
-	}
-	@SuppressWarnings("unchecked")
-	public String UpdateLocal(String NameFile)//rung bar bim
-	{
-		JSONObject output_json = new JSONObject();
-		DB db = null;
-		try 
-		{
-			db = MONGODB.GetMongoDB();
-			BasicDBObject Target = new BasicDBObject();
-			BasicDBObject SetUpdate = new BasicDBObject();
-			Target.put("_id",NameFile);
-			
-			SetUpdate.put("rawcontent", "");
-			SetUpdate.put("date", new Date());
-			DBCollection collCrawl = db.getCollection("local");
 		}catch (Exception e) 
 		{
 			output_json.put("code", -1);
@@ -340,7 +318,7 @@ public class CrawLocal {
 	@POST
 	@Path("/getpby_id")
 	@SuppressWarnings("unchecked")
-	public String GetProjectBy_id(String JsonInput)
+	public String GetProjectBy_id(String JsonInput)// google docs (v)
 	{
 		JSONObject output_json = new JSONObject();
 		DB db = null;
@@ -398,12 +376,3 @@ public class CrawLocal {
 		return output_json.toString();
 	}
 }
-/**
-	db.local.insert({"_id":"A11.2011.05929.pdf","judul":"crawling berbasisi ontology","rawcontent":"wkwkkwkwkwkwkwkkwkwkwkkkwkwkwkwkwkkw kwkwkwkwkwk wkwk kwkwkwkwk wkkw kwwkwkk wkkwkwkwkwkwk"})
-	
-	alur :
-	mahasiswa upload final project
-	PreProcessing dipanggil berkala (baca pdf difolder final->insert ke local tabel)
-	
-	
-**/
