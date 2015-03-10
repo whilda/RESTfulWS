@@ -36,7 +36,7 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import service.CrawlClass;
+import service.Crawl;
 //import org.apache.lucene.analysis.Analyzer;
 //import org.apache.lucene.analysis.TokenStream;
 //import org.apache.lucene.analysis.standard.StandardAnalyzer;

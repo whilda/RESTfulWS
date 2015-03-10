@@ -27,7 +27,7 @@ import com.mongodb.DBObject;
 import connector.MONGODB;
 
 @Path("crawl")
-public class CrawlClass {
+public class Crawl {
 	// get URL from data_crawler where status 0
 	@POST
 	@Path("/docrawl")
