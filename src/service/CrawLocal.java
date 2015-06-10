@@ -18,6 +18,7 @@ import main.fingerprintWinnowing.WinnowingTextTransformer;
 import main.fingerprintWinnowing.WinnowingWhitespaceFilter;
 
 import org.bson.BSONObject;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -102,7 +103,7 @@ public class CrawLocal {
 		JSONObject input_json = new JSONObject();
 		DB db = null;
 		String StrPdf = null;
-		String[] listString = null;
+		JSONArray listString = new JSONArray();
 		try 
 		{
 			db = MONGODB.GetMongoDB();
@@ -112,20 +113,17 @@ public class CrawLocal {
 			String list = this.GetUniqueProject();
 			input_json = (JSONObject) JSONValue.parse(list);
 			
-			list = input_json.get("data").toString();
-			list = list.replace("[","");
-			list = list.replace("]","");
-			list = list.replace(" ","");
-			listString = list.split(",");
-			int i=0,count = listString.length;
+			listString = (JSONArray) input_json.get("data");
+			
+			int i=0,count = listString.size();
 			preprocess ReadPdf = new preprocess();
 			while(i<count)
 			{
 				StrPdf = null;
-				objek_db.put("_id",listString[i]);
-				objek_db.put("judul", "judul TA "+listString[i]);
+				objek_db.put("_id",listString.get(i));
+				objek_db.put("judul", "judul TA "+listString.get(i));
 				objek_db.put("date", new Date());
-				StrPdf = ReadPdf.readOnePdf(FinalProjectPath+listString[i]);
+				StrPdf = ReadPdf.readOnePdf(FinalProjectPath+listString.get(i));
 				
 				if(StrPdf != null){
 				objek_db.put("rawcontent",StrPdf);
@@ -134,7 +132,7 @@ public class CrawLocal {
 					objek_db.put("rawcontent", null);
 				
 				objek_db.put("cleancontent","");//ReadPdf.StopWords(StrPdf)
-				objek_db.put("keyword","keyword "+listString[i]);
+				objek_db.put("keyword","keyword "+listString.get(i));
 				CollCrawl.insert(objek_db);
 				i++;
 			}
@@ -191,7 +189,7 @@ public class CrawLocal {
 	public String GetAllProjectByNameFile(@PathParam("appkey") String appkey) // google docs (v)
 	{
 		JSONObject output_json = new JSONObject();
-		ArrayList<String> List = new ArrayList<String>();
+		JSONArray List = new JSONArray();
 		DB db = null;
 		try 
 		{
@@ -226,7 +224,7 @@ public class CrawLocal {
 	private String GetAllProjectByNameFileExcept(String NameFile)
 	{
 		JSONObject output_json = new JSONObject();
-		ArrayList<String> List = new ArrayList<String>();
+		JSONArray List = new JSONArray();
 		DB db = null;
 		try 
 		{
@@ -441,7 +439,7 @@ public String GetProjectResult(String JsonInput)// google docs (v)
 			
 			//DBObject result = collPlag.findOne("plagdetails");
 			output_json.put("code", 1);
-			output_json.put("Hasil Similarity : ", Result);
+			output_json.put("Hasil Check Plagiarisme [Nim / Similarity]", Result);
 		}
 	}catch (Exception e)
 	{
