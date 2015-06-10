@@ -40,7 +40,7 @@ public class CrawLocal {
 	{
 		//list examples from service /g/getlistthesis
 		String[] ListFiles = new String[] {"A11.2012.06601.pdf","A11.2012.06602.pdf","A11.2012.06603.pdf","A11.2012.06604.pdf","A11.2012.06605.pdf"};
-		ArrayList<String> UniqFile = new ArrayList<String>();
+		JSONArray UniqFile = new JSONArray();
 		JSONObject output_json = new JSONObject();
 		try 
 		{
@@ -56,8 +56,8 @@ public class CrawLocal {
 			if(UniqFile.size()>0)
 			{
 				output_json.put("code", 1);
-				output_json.put("message","sucess");
-				output_json.put("data", UniqFile.toString());
+				output_json.put("message","Success Di Upload");
+				output_json.put("data", UniqFile);
 			}
 			else
 			{
@@ -121,7 +121,7 @@ public class CrawLocal {
 			{
 				StrPdf = null;
 				objek_db.put("_id",listString.get(i));
-				objek_db.put("judul", "judul TA "+listString.get(i));
+				objek_db.put("judul", "Judul TA "+listString.get(i));
 				objek_db.put("date", new Date());
 				StrPdf = ReadPdf.readOnePdf(FinalProjectPath+listString.get(i));
 				
@@ -137,7 +137,7 @@ public class CrawLocal {
 				i++;
 			}
 			output_json.put("code", 1);
-			output_json.put("message", "sucess");
+			output_json.put("message", "Success");
 		}catch (Exception e) 
 		{
 			output_json.put("code", -1);
@@ -296,16 +296,16 @@ public class CrawLocal {
 				// get NameFile except target from local table
 				if(list!="0")
 				{
-					list = list.replace("[","");list = list.replace("]","");list = list.replace(" ","");
-					String[] listString = list.split(",");
-					List<DBObject> documents = new ArrayList<>();
-					int i=0,count = listString.length;
+					
+					JSONArray listString = (JSONArray) JSONValue.parse(list);
+					JSONArray documents = new JSONArray();
+					int i=0,count = listString.size();
 					// end
 					// prepare check plagiarism
 					while(i<count)
 					{
 						BasicDBObject compare = new BasicDBObject();
-						ResEnemy = (JSONObject) JSONValue.parse(this.PriGetProjectBy_id(listString[i]));
+						ResEnemy = (JSONObject) JSONValue.parse(this.PriGetProjectBy_id(listString.get(i).toString()));
 						dataEnemy = ResEnemy.get("data").toString();
 						EnemyJson = (JSONObject) JSONValue.parse(dataEnemy);
 						EnemyRawContent = EnemyJson.get("rawcontent").toString();
@@ -323,13 +323,13 @@ public class CrawLocal {
 							e.printStackTrace();		
 						}
 						JaccardCoefficient JC = new JaccardCoefficient();
-						compare.put("nim", listString[i]);
+						compare.put("nim", listString.get(i));
 						compare.put("similarity", JC.similaritylist(fpTarget, fpEnemy));
 						documents.add(compare);
 						i++;
 					}
 					newField.put("_id",NameFile);
-					newField.put("plagdetails",documents.toString());
+					newField.put("plagdetails",documents);
 					newField.put("date", new Date());
 					collCheckPlag.insert(newField);
 					
