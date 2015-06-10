@@ -17,6 +17,7 @@ import main.fingerprintWinnowing.WinnowingFingerprinter;
 import main.fingerprintWinnowing.WinnowingTextTransformer;
 import main.fingerprintWinnowing.WinnowingWhitespaceFilter;
 
+import org.bson.BSONObject;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -30,14 +31,14 @@ import connector.MONGODB;
 @Path("clocal")
 public class CrawLocal {
 	// path final project
-	public static String FinalProjectPath = "C:/bima data/skripsi/luna/.metadata/.plugins/org.eclipse.wst.server.core/tmp0/wtpwebapps/RESTfulWS/final/";
+	public static String FinalProjectPath = "C:/Users/Yehezkiel/Workspace/.metadata/.plugins/org.eclipse.wst.server.core/tmp0/wtpwebapps/RESTfulWS/final/";
 	@POST
 	@Path("/getuniq")
 	@SuppressWarnings("unchecked")
 	public String GetUniqueProject() // google docs (v)
 	{
 		//list examples from service /g/getlistthesis
-		String[] ListFiles = new String[] {"A11.2011.05929.pdf","A11.2011.05930.pdf","A11.2011.05931.pdf","A11.2011.05932.pdf","A11.2011.05900.pdf"};
+		String[] ListFiles = new String[] {"A11.2012.06601.pdf","A11.2012.06602.pdf","A11.2012.06603.pdf","A11.2012.06604.pdf","A11.2012.06605.pdf"};
 		ArrayList<String> UniqFile = new ArrayList<String>();
 		JSONObject output_json = new JSONObject();
 		try 
@@ -96,6 +97,7 @@ public class CrawLocal {
 	@SuppressWarnings("unchecked")
 	public String PreProcessList() // google docs (v)
 	{
+		
 		JSONObject output_json = new JSONObject();
 		JSONObject input_json = new JSONObject();
 		DB db = null;
@@ -124,7 +126,13 @@ public class CrawLocal {
 				objek_db.put("judul", "judul TA "+listString[i]);
 				objek_db.put("date", new Date());
 				StrPdf = ReadPdf.readOnePdf(FinalProjectPath+listString[i]);
+				
+				if(StrPdf != null){
 				objek_db.put("rawcontent",StrPdf);
+				}
+				else
+					objek_db.put("rawcontent", null);
+				
 				objek_db.put("cleancontent","");//ReadPdf.StopWords(StrPdf)
 				objek_db.put("keyword","keyword "+listString[i]);
 				CollCrawl.insert(objek_db);
@@ -151,6 +159,25 @@ public class CrawLocal {
 			{
 				uniq = true;
 			}
+
+		}catch (Exception e)
+		{
+			System.out.println(e);
+		}
+		return uniq;
+	}
+	private boolean ProjectAlreadyProcessed(DBCollection collCheckPlag,String NameFile)
+	{
+		boolean uniq = false;
+		try 
+		{
+			BasicDBObject where_query = new BasicDBObject("_id",NameFile);
+			DBObject find_objek_project = collCheckPlag.findOne(where_query);
+			if (find_objek_project != null)
+			{
+				uniq = true;
+			}
+
 		}catch (Exception e)
 		{
 			System.out.println(e);
@@ -245,11 +272,19 @@ public class CrawLocal {
 			DBCollection collCheckPlag = db.getCollection("checkplagiarism");
 			BasicDBObject newField = new BasicDBObject();
 			String NameFile = input_json.get("NameFile").toString();
+			if(this.ProjectAlreadyProcessed(collCheckPlag, NameFile))
+			{
+				output_json.put("code", -1);
+				output_json.put("message","Tugas Akhir Sudah Dicheck Silakan Lihat Hasil");
+			}
+			else
+			{
 			if(!this.ProjectExist(collLocal, NameFile))
 			{
 				output_json.put("code", 2);
 				output_json.put("message", "Tugas Akhir belum Anda Upload");
 			}
+			
 			else
 			{
 				//get data by namefile(_id)
@@ -282,7 +317,7 @@ public class CrawLocal {
 						List<WinnowingTextTransformer> wt=new ArrayList<WinnowingTextTransformer>(1);
 						wt.add(ft);
 						ws.add(ft);
-						WinnowingFingerprinter WN = new WinnowingFingerprinter(ws, wt, 8, 12, "MD5");
+						WinnowingFingerprinter WN = new WinnowingFingerprinter(ws, wt, 4, 6, "MD5");
 						try {
 							fpTarget = WN.fingerprint(RawContent);
 							fpEnemy = WN.fingerprint(EnemyRawContent);
@@ -307,6 +342,7 @@ public class CrawLocal {
 					output_json.put("code",2);
 					output_json.put("message","Plagiarism Check Failed");
 				}
+			}
 			}
 		}catch (Exception e) 
 		{
@@ -375,4 +411,43 @@ public class CrawLocal {
 		}
 		return output_json.toString();
 	}
+
+@POST
+@Path("/getresult")
+@SuppressWarnings("unchecked")
+public String GetProjectResult(String JsonInput)// google docs (v)
+{
+	JSONObject output_json = new JSONObject();
+	DB db = null;
+	try 
+	{
+		db = MONGODB.GetMongoDB();
+		JSONObject input_json = (JSONObject) JSONValue.parse(JsonInput);
+		DBCollection collApp = db.getCollection("application");
+		GeneralService.AppkeyCheck(input_json.get("appkey").toString(),collApp);
+		DBCollection collPlag = db.getCollection("checkplagiarism");
+		BasicDBObject where_query = new BasicDBObject("_id",input_json.get("NameFile").toString());
+		DBObject find_objek_project = collPlag.findOne(where_query);
+		String NameFile = input_json.get("NameFile").toString();
+		if (find_objek_project == null)
+		{
+			output_json.put("code", 1);
+			output_json.put("message", "Result File Belum Ada Silahkan Check Dahulu");			
+		}
+		else
+		{
+			BasicDBObject query = new BasicDBObject();
+			DBObject Result = collPlag.findOne(query);
+			
+			//DBObject result = collPlag.findOne("plagdetails");
+			output_json.put("code", 1);
+			output_json.put("Hasil Similarity : ", Result);
+		}
+	}catch (Exception e)
+	{
+		output_json.put("code", -1);
+		output_json.put("message", e.toString());
+	}
+	return output_json.toString();
+}
 }

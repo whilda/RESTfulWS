@@ -1,22 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jre1.8.0_25">
-		<attributes>
-			<attribute name="owner.project.facets" value="java"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v8.0">
+	<classpathentry exported="true" kind="con" path="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v8.0">
 		<attributes>
 			<attribute name="owner.project.facets" value="jst.web"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
-	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/jsoup-1.8.1.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/pdfbox-app-1.8.8.jar"/>
-	<classpathentry kind="lib" path="C:/bima data/skripsi/lib java/crawler4j-4.1-jar-with-dependencies.jar"/>
-	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/slf4j-simple-1.7.9.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/apacheorg"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
+	<classpathentry exported="true" kind="lib" path="WebContent/WEB-INF/lib/jsoup-1.8.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="WebContent/WEB-INF/lib/pdfbox-app-1.8.8.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Yehezkiel/Workspace/PlagiarismW/WebContent/WEB-INF/lib/crawler4j-4.1-jar-with-dependencies.jar"/>
+	<classpathentry exported="true" kind="lib" path="WebContent/WEB-INF/lib/slf4j-simple-1.7.9.jar"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.USER_LIBRARY/apacheorg"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
